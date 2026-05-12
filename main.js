@@ -4,10 +4,10 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 
-// Router that proxies exercise searches to the ExerciseDB API
 const exercisesRouter = require('./routes/exercises');
 const workoutsRouter  = require('./routes/workouts');
 const historyRouter   = require('./routes/history');
+const Workout         = require('./models/Workout');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,13 +23,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api', exercisesRouter);    // /api/exercises — ExerciseDB proxy
-app.use('/workouts', workoutsRouter); // GET /workouts page + POST/DELETE API
-app.use('/history', historyRouter);   // GET /history page + POST to log a session
+app.use('/api', exercisesRouter);    // exercise search, proxied to ExerciseDB
+app.use('/workouts', workoutsRouter); // My Workouts page + create/edit/delete API
+app.use('/history', historyRouter);   // History page + log a session
 
-// Home Page
-app.get('/', (req, res) => {
-  res.render('index');
+// Home page; loads a workout into the sidebar for editing when ?edit=id is in the URL
+app.get('/', async (req, res) => {
+  let editWorkout = null;
+  if (req.query.edit) {
+    try {
+      const found = await Workout.findById(req.query.edit);
+      if (found) editWorkout = found.toJSON();
+    } catch (e) { /* ignore bad id or DB errors */ }
+  }
+  res.render('index', { editWorkout });
 });
 
 app.listen(port, () => {

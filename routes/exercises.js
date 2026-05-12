@@ -1,14 +1,10 @@
 const express = require('express');
 
-// express.Router() creates a mini router that gets mounted at /api in main.js
-// so every route defined here is relative to /api
 const router = express.Router();
 
 const EDB_BASE = 'https://oss.exercisedb.dev/api/v1';
 
-// GET /api/exercises
-// Accepts query params: name, bodyParts, equipments, limit
-// Proxies the request to ExerciseDB so the browser never calls the external API directly
+// GET /api/exercises — proxies to ExerciseDB
 router.get('/exercises', async (req, res) => {
   const { name, bodyParts, equipments, limit = 30 } = req.query;
 
@@ -21,7 +17,7 @@ router.get('/exercises', async (req, res) => {
     const response = await fetch(`${EDB_BASE}/exercises?${params}`);
     const json = await response.json();
 
-    // ExerciseDB wraps results in { success: true, data: [...] }
+    // API returns { success, data } — forward only the data array
     if (!json.success) return res.status(502).json({ error: 'Upstream API error' });
 
     res.json(json.data);

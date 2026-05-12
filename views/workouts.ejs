@@ -41,7 +41,12 @@
           <div class="workout-card">
             <div class="workout-card-header">
               <h2 class="workout-card-name"><%= w.name %></h2>
-              <button class="btn btn-sm btn-danger" onclick="deleteWorkout('<%= w._id %>')">Delete</button>
+              <div class="workout-card-actions">
+                <a href="/?edit=<%= w._id %>" class="btn btn-sm">Edit</a>
+                <form method="POST" action="/workouts/<%= w._id %>/delete" onsubmit="return confirm('Delete this workout? This cannot be undone.')">
+                  <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+              </div>
             </div>
 
             <% if (w.description) { %>
@@ -52,68 +57,61 @@
 
             <ul class="workout-ex-list">
               <% w.exercises.forEach(function(ex) { %>
-                <%# Exercise names from the API are all lowercase; this title-cases them for display %>
-                <li><%= ex.name.replace(/\b\w/g, function(c){ return c.toUpperCase(); }) %></li>
+                <%# Clicking an exercise row opens the detail popup %>
+                <%# Fall back to defaults for workouts saved before sets/reps were added %>
+                <li class="workout-ex-item"
+                    data-workout-id="<%= w._id %>"
+                    data-exercise-id="<%= ex.exerciseId %>">
+                  <span class="workout-ex-name"><%= ex.name.replace(/\b\w/g, function(c){ return c.toUpperCase(); }) %></span>
+                  <span class="workout-ex-volume"><%= ex.sets || 3 %> sets &middot; <%= ex.reps || 10 %> reps</span>
+                </li>
               <% }); %>
             </ul>
 
-            <button class="btn btn-primary btn-block" onclick="logWorkout('<%= w._id %>')">Log this workout</button>
+            <form method="POST" action="/history">
+              <input type="hidden" name="workoutId" value="<%= w._id %>" />
+              <button type="submit" class="btn btn-primary btn-block">Log this workout</button>
+            </form>
           </div>
         <% }); %>
       </div>
     <% } %>
   </main>
 
-  <!-- Custom delete confirmation modal -->
-  <div class="modal-overlay hidden" id="deleteOverlay">
-    <div class="modal" style="max-width:380px">
-      <div class="modal-info">
-        <h2 style="font-size:17px;margin-bottom:8px">Delete workout?</h2>
-        <p style="font-size:14px;color:var(--muted);margin:0 0 20px">This cannot be undone.</p>
-        <div style="display:flex;gap:10px">
-          <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-          <button class="btn" id="cancelDeleteBtn">Cancel</button>
+  <!-- ── Exercise detail popup (same structure as main page, no Add button) ── -->
+  <div class="popup-overlay hidden" id="exPopupOverlay">
+    <div class="popup">
+      <button class="popup-close" id="exPopupClose">✕</button>
+      <div class="popup-content">
+        <div class="popup-info">
+          <h2 id="exPopupName"></h2>
+          <div class="tags" id="exPopupTags"></div>
+
+          <div class="popup-section" id="exPopupTargetSection">
+            <h4>Target muscle</h4>
+            <p id="exPopupTarget"></p>
+          </div>
+
+          <div class="popup-section" id="exPopupSecondarySection">
+            <h4>Secondary muscles</h4>
+            <p id="exPopupSecondary"></p>
+          </div>
+
+          <div class="popup-section">
+            <h4>How to do it</h4>
+            <ol id="exPopupInstructions"></ol>
+          </div>
+        </div>
+        <div class="popup-gif">
+          <img id="exPopupImg" src="" alt="" />
         </div>
       </div>
     </div>
   </div>
 
-  <script>
-    async function logWorkout(id) {
-      const res = await fetch('/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workoutId: id })
-      });
-      const data = await res.json();
-      if (data.success) window.location.href = '/history';
-    }
 
-    let pendingDeleteId = null;
-
-    function deleteWorkout(id) {
-      pendingDeleteId = id;
-      document.getElementById('deleteOverlay').classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeDeleteModal() {
-      pendingDeleteId = null;
-      document.getElementById('deleteOverlay').classList.add('hidden');
-      document.body.style.overflow = '';
-    }
-
-    document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
-    document.getElementById('deleteOverlay').addEventListener('click', e => {
-      if (e.target === document.getElementById('deleteOverlay')) closeDeleteModal();
-    });
-
-    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
-      if (!pendingDeleteId) return;
-      const res = await fetch('/workouts/' + pendingDeleteId, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) window.location.reload();
-    });
-  </script>
+  <!-- Workout data for the JS — exercises are read via dataset in workouts.js -->
+  <div id="workoutsData" data-workouts="<%= JSON.stringify(workouts) %>" hidden></div>
+  <script src="/js/workouts.js"></script>
 </body>
 </html>

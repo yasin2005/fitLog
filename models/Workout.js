@@ -1,22 +1,25 @@
 const mongoose = require('mongoose');
 
-// Sub-schema for a single exercise — stores every field returned by ExerciseDB
+// One exercise entry stored inside a workout
 const ExerciseSchema = new mongoose.Schema({
   exerciseId:       { type: String, required: true },
   name:             { type: String, required: true },
   gifUrl:           { type: String },
-  targetMuscles:    { type: [String], default: [] }, // primary target muscles (e.g. ["quads"])
+  targetMuscles:    { type: [String], default: [] },
   bodyParts:        { type: [String], default: [] },
   equipments:       { type: [String], default: [] },
   secondaryMuscles: { type: [String], default: [] },
-  instructions:     { type: [String], default: [] }
-}, { _id: false }); // no separate _id per exercise entry
+  instructions:     { type: [String], default: [] },
+  // sets and reps chosen by the user
+  sets:             { type: Number, default: 3 },
+  reps:             { type: Number, default: 10 }
+}, { _id: false }); // no _id on exercise entries
 
-// Main workout schema — a named, reusable workout the user builds
+// A saved workout with a name, optional description, and a list of exercises
 const WorkoutSchema = new mongoose.Schema({
   name:        { type: String, required: true },
   description: { type: String, default: '' },
   exercises:   { type: [ExerciseSchema], default: [] }
-}, { timestamps: true }); // adds createdAt and updatedAt automatically
+}, { timestamps: true });
 
 module.exports = mongoose.model('Workout', WorkoutSchema);

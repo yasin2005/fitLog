@@ -24,7 +24,7 @@
 
   <main class="layout">
     <!-- Left: search area -->
-    <section class="main-col">
+    <section>
       <div class="hero">
         <h1>Find an exercise. Build a workout.</h1>
         <p class="subtitle">Search by name, muscle group, or equipment.</p>
@@ -43,7 +43,7 @@
 
         <div class="filters">
           <!-- Muscle group dropdown -->
-          <div class="filter-dropdown" id="bodyPartDropdown">
+          <div class="filter-dropdown">
             <button type="button" class="filter-trigger" id="bodyPartTrigger">
               <span>Muscle group</span>
               <span class="filter-badge hidden" id="bodyPartBadge"></span>
@@ -68,7 +68,7 @@
           </div>
 
           <!-- Equipment dropdown -->
-          <div class="filter-dropdown" id="equipmentDropdown">
+          <div class="filter-dropdown">
             <button type="button" class="filter-trigger" id="equipmentTrigger">
               <span>Equipment</span>
               <span class="filter-badge hidden" id="equipmentBadge"></span>
@@ -131,6 +131,9 @@
           <li class="sidebar-ex-empty">Search for exercises and click Add.</li>
         </ul>
 
+        <!-- Inline error shown instead of an alert when validation fails -->
+        <p class="save-error hidden" id="saveError"></p>
+
         <div class="sidebar-actions">
           <button class="btn btn-primary btn-block" id="saveWorkoutBtn">Save Workout</button>
           <button class="btn btn-block" id="cancelCreateBtn">Cancel</button>
@@ -140,42 +143,47 @@
     </aside>
   </main>
 
-  <!-- Exercise detail modal -->
-  <div class="modal-overlay hidden" id="modalOverlay">
-    <div class="modal">
-      <button class="modal-close" id="modalClose">✕</button>
-      <div class="modal-content">
-        <div class="modal-info">
-          <h2 id="modalName"></h2>
-          <div class="tags" id="modalTags"></div>
+  <!-- Exercise detail popup -->
+  <div class="popup-overlay hidden" id="popupOverlay">
+    <div class="popup">
+      <button class="popup-close" id="popupClose">✕</button>
+      <div class="popup-content">
+        <div class="popup-info">
+          <h2 id="popupName"></h2>
+          <div class="tags" id="popupTags"></div>
 
-          <div class="modal-section" id="modalTargetSection">
+          <div class="popup-section" id="popupTargetSection">
             <h4>Target muscle</h4>
-            <p id="modalTarget"></p>
+            <p id="popupTarget"></p>
           </div>
 
-          <div class="modal-section" id="modalSecondarySection">
+          <div class="popup-section" id="popupSecondarySection">
             <h4>Secondary muscles</h4>
-            <p id="modalSecondary"></p>
+            <p id="popupSecondary"></p>
           </div>
 
-          <div class="modal-section">
+          <div class="popup-section">
             <h4>How to do it</h4>
-            <ol id="modalInstructions"></ol>
+            <ol id="popupInstructions"></ol>
           </div>
 
           <!-- Add to workout button — only visible while creating a workout -->
-          <div class="modal-section" id="modalAddSection" style="display:none">
-            <button class="btn btn-primary" id="modalAddBtn">+ Add to Workout</button>
+          <div class="popup-section" id="popupAddSection" style="display:none">
+            <button class="btn btn-primary" id="popupAddBtn">+ Add to Workout</button>
           </div>
         </div>
-        <div class="modal-gif">
-          <img id="modalImg" src="" alt="" />
+        <div class="popup-gif">
+          <img id="popupImg" src="" alt="" />
         </div>
       </div>
     </div>
   </div>
 
+  <% if (editWorkout) { %>
+  <div id="editData" hidden
+       data-id="<%= editWorkout._id %>"
+       data-workout="<%= JSON.stringify(editWorkout) %>"></div>
+  <% } %>
   <script src="/js/index.js"></script>
 </body>
 </html>

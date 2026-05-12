@@ -48,7 +48,11 @@
               <ul class="history-ex-list">
                 <% log.workoutId.exercises.forEach(function(ex) { %>
                   <%# API names are lowercase — title-case for display %>
-                  <li><%= ex.name.replace(/\b\w/g, function(c){ return c.toUpperCase(); }) %></li>
+                  <li>
+                    <span class="history-ex-name"><%= ex.name.replace(/\b\w/g, function(c){ return c.toUpperCase(); }) %></span>
+                    <%# Fallback to defaults for logs recorded before sets/reps were added %>
+                    <span class="history-ex-volume"><%= ex.sets || 3 %> sets &middot; <%= ex.reps || 10 %> reps</span>
+                  </li>
                 <% }); %>
               </ul>
             <% } %>

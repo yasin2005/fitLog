@@ -12,7 +12,7 @@ router.post('/', async (req, res) => {
 
     const log = new WorkoutLog({ workoutId, workoutName: workout.name });
     await log.save();
-    res.json({ success: true });
+    res.redirect('/history');
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -23,10 +23,10 @@ router.get('/', async (req, res) => {
   try {
     const since = new Date();
     since.setDate(since.getDate() - 7);
-    // Normalize to midnight so the window covers 7 full calendar days, not just the last 168 hours
+    // Set to midnight so the range starts at the beginning of the day, not mid-day 7 days ago
     since.setHours(0, 0, 0, 0);
 
-    // populate() fills in the full Workout document (including exercises) for each log
+    // populate replaces workoutId with the full Workout document, giving access to its exercises
     const logs = await WorkoutLog.find({ date: { $gte: since } })
       .populate('workoutId')
       .sort({ date: -1 });

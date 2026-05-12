@@ -5,7 +5,7 @@ const resultsCount = document.getElementById('resultsCount');
 const resultsGrid  = document.getElementById('resultsGrid');
 const clearSearchBtn = document.getElementById('clearSearchBtn');
 
-// Multi-select pill state
+// tracks which filter values are currently active
 const selectedBodyParts  = new Set();
 const selectedEquipments = new Set();
 
@@ -27,7 +27,7 @@ function setupFilterDropdown(triggerId, panelId, optionsId, selectedSet, badgeId
     selectAllBtn.classList.toggle('active', allActive);
   }
 
-  // Badge only shows when a subset (not all, not none) is selected
+  // show the count badge only when some (not all) filters are active
   function updateBadge() {
     const total = getOptions().length;
     if (selectedSet.size > 0 && selectedSet.size < total) {
@@ -38,7 +38,7 @@ function setupFilterDropdown(triggerId, panelId, optionsId, selectedSet, badgeId
     }
   }
 
-  // Select all options (default state on load)
+  // start with every option selected when the page loads
   function initSelectAll() {
     getOptions().forEach(o => {
       selectedSet.add(o.dataset.value);
@@ -49,7 +49,7 @@ function setupFilterDropdown(triggerId, panelId, optionsId, selectedSet, badgeId
   }
   initSelectAll();
 
-  // Toggle all on "Select all" click
+  // select or deselect all options together
   selectAllBtn.addEventListener('click', e => {
     e.stopPropagation();
     const opts = getOptions();
@@ -67,7 +67,7 @@ function setupFilterDropdown(triggerId, panelId, optionsId, selectedSet, badgeId
     updateBadge();
   });
 
-  // Stop panel clicks from bubbling so the dropdown stays open
+  // prevent clicks inside the panel from closing the dropdown
   panel.addEventListener('click', e => e.stopPropagation());
 
   trigger.addEventListener('click', e => {
@@ -119,25 +119,22 @@ queryInput.addEventListener('input', () => {
 
 clearSearchBtn.addEventListener('click', () => {
   queryInput.value = '';
-  // Re-select all options in both dropdowns (back to default state)
-  ['bodyPartPills', 'equipmentPills'].forEach(id => {
-    const container = document.getElementById(id);
-    container.querySelectorAll('.filter-option:not(.filter-option-all)').forEach(o => o.classList.add('active'));
-    const selectAll = container.querySelector('.filter-option-all');
-    if (selectAll) selectAll.classList.add('active');
-  });
   selectedBodyParts.clear();
   selectedEquipments.clear();
-  document.getElementById('bodyPartPills').querySelectorAll('.filter-option:not(.filter-option-all)')
-    .forEach(o => selectedBodyParts.add(o.dataset.value));
-  document.getElementById('equipmentPills').querySelectorAll('.filter-option:not(.filter-option-all)')
-    .forEach(o => selectedEquipments.add(o.dataset.value));
+  // reset both filters back to "all selected" — activate classes and repopulate sets in one pass
+  [['bodyPartPills', selectedBodyParts], ['equipmentPills', selectedEquipments]].forEach(([id, set]) => {
+    const container = document.getElementById(id);
+    container.querySelectorAll('.filter-option:not(.filter-option-all)').forEach(o => {
+      o.classList.add('active');
+      set.add(o.dataset.value);
+    });
+    container.querySelector('.filter-option-all')?.classList.add('active');
+  });
   document.getElementById('bodyPartBadge').classList.add('hidden');
   document.getElementById('equipmentBadge').classList.add('hidden');
   clearSearchBtn.style.display = 'none';
   resultsGrid.innerHTML = '';
   resultsCount.textContent = 'Search to get started';
-  refreshCardAddButtons();
 });
 
 // Sidebar elements
@@ -152,9 +149,8 @@ const sidebarExList    = document.getElementById('sidebarExList');
 const exCountLabel     = document.getElementById('exCount');
 
 // ─── Workout creator state ─────────────────────────────────────────────────────
-// Exercises staged for the workout being built (in memory until saved)
 let isCreating = false;
-let stagedExercises = []; // array of full exercise objects from the API
+let stagedExercises = []; // exercises added to the current workout, cleared on save or cancel
 
 function enterCreatingMode() {
   isCreating = true;
@@ -164,8 +160,8 @@ function enterCreatingMode() {
   renderSidebarList();
   sidebarIdle.classList.add('hidden');
   sidebarCreating.classList.remove('hidden');
-  // Show the "Add to Workout" button inside the modal
-  document.getElementById('modalAddSection').style.display = '';
+  // show the Add button inside the popup
+  document.getElementById('popupAddSection').style.display = '';
   // Re-render cards if there are results so Add buttons appear
   refreshCardAddButtons();
 }
@@ -175,11 +171,11 @@ function exitCreatingMode() {
   stagedExercises = [];
   sidebarCreating.classList.add('hidden');
   sidebarIdle.classList.remove('hidden');
-  document.getElementById('modalAddSection').style.display = 'none';
+  document.getElementById('popupAddSection').style.display = 'none';
   refreshCardAddButtons();
 }
 
-// Updates the exercise list in the sidebar panel
+// re-renders the exercise list in the sidebar
 function renderSidebarList() {
   sidebarExList.innerHTML = '';
   exCountLabel.textContent = `(${stagedExercises.length})`;
@@ -196,6 +192,9 @@ function renderSidebarList() {
     const li = document.createElement('li');
     li.className = 'sidebar-ex-item';
 
+    const topRow = document.createElement('div');
+    topRow.className = 'sidebar-ex-top';
+
     const name = document.createElement('span');
     name.textContent = ex.name.replace(/\b\w/g, c => c.toUpperCase());
 
@@ -209,13 +208,57 @@ function renderSidebarList() {
       refreshCardAddButtons();
     });
 
-    li.appendChild(name);
-    li.appendChild(removeBtn);
+    topRow.appendChild(name);
+    topRow.appendChild(removeBtn);
+
+    // sets/reps inputs — write back to state on every keystroke so the values survive re-renders
+    const metaRow = document.createElement('div');
+    metaRow.className = 'sidebar-ex-meta';
+
+    const setsLabel = document.createElement('span');
+    setsLabel.className = 'sidebar-ex-meta-label';
+    setsLabel.textContent = 'Sets';
+
+    const setsInput = document.createElement('input');
+    setsInput.type = 'number';
+    setsInput.min = '1';
+    setsInput.max = '99';
+    setsInput.value = ex.sets;
+    setsInput.className = 'sidebar-sets-reps';
+    setsInput.addEventListener('input', () => {
+      stagedExercises[i].sets = Math.max(1, parseInt(setsInput.value) || 1);
+    });
+    // reset to the clamped value if the user types something invalid
+    setsInput.addEventListener('blur', () => { setsInput.value = stagedExercises[i].sets; });
+
+    const repsLabel = document.createElement('span');
+    repsLabel.className = 'sidebar-ex-meta-label';
+    repsLabel.textContent = 'Reps';
+
+    const repsInput = document.createElement('input');
+    repsInput.type = 'number';
+    repsInput.min = '1';
+    repsInput.max = '999';
+    repsInput.value = ex.reps;
+    repsInput.className = 'sidebar-sets-reps';
+    repsInput.addEventListener('input', () => {
+      stagedExercises[i].reps = Math.max(1, parseInt(repsInput.value) || 1);
+    });
+    // same clamp behaviour for reps
+    repsInput.addEventListener('blur', () => { repsInput.value = stagedExercises[i].reps; });
+
+    metaRow.appendChild(setsLabel);
+    metaRow.appendChild(setsInput);
+    metaRow.appendChild(repsLabel);
+    metaRow.appendChild(repsInput);
+
+    li.appendChild(topRow);
+    li.appendChild(metaRow);
     sidebarExList.appendChild(li);
   });
 }
 
-// Adds one exercise to the staged list (called from card or modal Add button)
+// Adds one exercise to the staged list (called from card or popup Add button)
 function addExerciseToWorkout(ex) {
   if (!stagedExercises.some(e => e.exerciseId === ex.exerciseId)) {
     stagedExercises.push({
@@ -226,14 +269,16 @@ function addExerciseToWorkout(ex) {
       bodyParts:        ex.bodyParts        || [],
       equipments:       ex.equipments       || [],
       secondaryMuscles: ex.secondaryMuscles || [],
-      instructions:     ex.instructions     || []
+      instructions:     ex.instructions     || [],
+      sets:             3, // default volume, editable in the sidebar
+      reps:             10
     });
     renderSidebarList();
     refreshCardAddButtons();
   }
 }
 
-// Updates Add buttons on all rendered cards to reflect current staged state
+// sync the Add/Added state on every visible card
 function refreshCardAddButtons() {
   document.querySelectorAll('.card-add-btn').forEach(btn => {
     const id = btn.dataset.exerciseId;
@@ -244,70 +289,112 @@ function refreshCardAddButtons() {
   });
 }
 
+// If the server injected an #editData element, pre-load that workout into the sidebar
+const editDataEl    = document.getElementById('editData');
+const editWorkoutId = editDataEl ? editDataEl.dataset.id : null;
+
+if (editWorkoutId) {
+  const editWorkout = JSON.parse(editDataEl.dataset.workout);
+  enterCreatingMode();
+  document.querySelector('.sidebar-title').textContent = 'Edit Workout';
+  saveWorkoutBtn.textContent  = 'Save Changes';
+  cancelCreateBtn.textContent = '← Back';
+  workoutNameInput.value = editWorkout.name;
+  workoutDescInput.value = editWorkout.description || '';
+  (editWorkout.exercises || []).forEach(ex => {
+    stagedExercises.push({ ...ex, sets: ex.sets || 3, reps: ex.reps || 10 });
+  });
+  renderSidebarList();
+}
+
 startCreateBtn.addEventListener('click', enterCreatingMode);
-cancelCreateBtn.addEventListener('click', exitCreatingMode);
+
+// go back to /workouts when editing, or close the sidebar when creating
+cancelCreateBtn.addEventListener('click', () => {
+  if (editWorkoutId) { window.location.href = '/workouts'; }
+  else               { exitCreatingMode(); }
+});
+
+// show or hide the inline validation error below the exercise list
+function showSaveError(msg) {
+  const el = document.getElementById('saveError');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+function clearSaveError() {
+  document.getElementById('saveError').classList.add('hidden');
+}
+// clear the error while the user is typing in the name field
+workoutNameInput.addEventListener('input', clearSaveError);
 
 saveWorkoutBtn.addEventListener('click', async () => {
   const name = workoutNameInput.value.trim();
-  if (!name) { alert('Please enter a workout name.'); return; }
-  if (stagedExercises.length === 0) { alert('Please add at least one exercise.'); return; }
+  if (!name) { showSaveError('Please enter a workout name.'); return; }
+  if (stagedExercises.length === 0) { showSaveError('Please add at least one exercise.'); return; }
+  clearSaveError();
 
   saveWorkoutBtn.disabled = true;
   saveWorkoutBtn.textContent = 'Saving…';
 
+  // editing an existing workout uses PUT; creating a new one uses POST
+  const url    = editWorkoutId ? '/workouts/' + editWorkoutId : '/workouts';
+  const method = editWorkoutId ? 'PUT' : 'POST';
+
   try {
-    const res = await fetch('/workouts', {
-      method: 'POST',
+    const res  = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        description: workoutDescInput.value.trim(),
-        exercises: stagedExercises
-      })
+      body: JSON.stringify({ name, description: workoutDescInput.value.trim(), exercises: stagedExercises })
     });
     const data = await res.json();
     if (data.success) {
-      exitCreatingMode();
-      // Brief confirmation
-      startCreateBtn.textContent = '✓ Workout saved!';
-      setTimeout(() => { startCreateBtn.textContent = '+ Create Workout'; }, 2500);
+      if (editWorkoutId) {
+        window.location.href = '/workouts';
+      } else {
+        exitCreatingMode();
+        startCreateBtn.textContent = '✓ Workout saved!';
+        setTimeout(() => { startCreateBtn.textContent = '+ Create Workout'; }, 2500);
+      }
+    } else {
+      showSaveError(data.error || 'Save failed. Please try again.');
     }
   } catch (err) {
     console.error(err);
+    showSaveError('Network error. Please try again.');
   } finally {
     saveWorkoutBtn.disabled = false;
-    saveWorkoutBtn.textContent = 'Save Workout';
+    saveWorkoutBtn.textContent = editWorkoutId ? 'Save Changes' : 'Save Workout';
   }
 });
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
-let currentModalExercise = null;
+// ─── Popup ────────────────────────────────────────────────────────────────────
+let openExercise = null;
 
-function openModal(ex) {
-  currentModalExercise = ex;
+function openPopup(ex) {
+  openExercise = ex;
 
-  const modalImg = document.getElementById('modalImg');
-  modalImg.style.display = 'block';
-  modalImg.src = ex.gifUrl;
-  modalImg.alt = ex.name;
-  modalImg.onerror = () => {
-    modalImg.style.display = 'none';
-    let fallback = document.getElementById('modalImgFallback');
+  const popupImg = document.getElementById('popupImg');
+  popupImg.style.display = 'block';
+  popupImg.src = ex.gifUrl;
+  popupImg.alt = ex.name;
+  popupImg.onerror = () => {
+    popupImg.style.display = 'none';
+    let fallback = document.getElementById('popupImgFallback');
     if (!fallback) {
       fallback = document.createElement('div');
-      fallback.id = 'modalImgFallback';
-      fallback.className = 'modal-img-fallback';
+      fallback.id = 'popupImgFallback';
+      fallback.className = 'popup-img-fallback';
       fallback.textContent = 'No image available';
-      modalImg.parentNode.appendChild(fallback);
+      popupImg.parentNode.appendChild(fallback);
     }
     fallback.style.display = 'flex';
   };
-  const fallback = document.getElementById('modalImgFallback');
+  const fallback = document.getElementById('popupImgFallback');
   if (fallback) fallback.style.display = 'none';
 
-  document.getElementById('modalName').textContent = ex.name.replace(/\b\w/g, c => c.toUpperCase());
+  document.getElementById('popupName').textContent = ex.name.replace(/\b\w/g, c => c.toUpperCase());
 
-  const tagsEl = document.getElementById('modalTags');
+  const tagsEl = document.getElementById('popupTags');
   tagsEl.innerHTML = '';
   [...(ex.bodyParts || []), ...(ex.equipments || [])].forEach(t => {
     const span = document.createElement('span');
@@ -316,34 +403,34 @@ function openModal(ex) {
     tagsEl.appendChild(span);
   });
 
-  const targetSection = document.getElementById('modalTargetSection');
+  const targetSection = document.getElementById('popupTargetSection');
   if (ex.targetMuscles && ex.targetMuscles.length > 0) {
-    document.getElementById('modalTarget').textContent = ex.targetMuscles.join(', ');
+    document.getElementById('popupTarget').textContent = ex.targetMuscles.join(', ');
     targetSection.style.display = '';
   } else {
     targetSection.style.display = 'none';
   }
 
-  const secondarySection = document.getElementById('modalSecondarySection');
+  const secondarySection = document.getElementById('popupSecondarySection');
   if (ex.secondaryMuscles && ex.secondaryMuscles.length > 0) {
-    document.getElementById('modalSecondary').textContent = ex.secondaryMuscles.join(', ');
+    document.getElementById('popupSecondary').textContent = ex.secondaryMuscles.join(', ');
     secondarySection.style.display = '';
   } else {
     secondarySection.style.display = 'none';
   }
 
-  const instrEl = document.getElementById('modalInstructions');
+  const instrEl = document.getElementById('popupInstructions');
   instrEl.innerHTML = '';
   (ex.instructions || []).forEach(step => {
     const li = document.createElement('li');
-    // Strip "Step: 1" prefixes that ExerciseDB includes in some instruction strings
+    // some instructions come prefixed with "Step: 1", "Step: 2", etc. — strip that
     li.textContent = step.replace(/^Step:\s*\d+\s*/i, '');
     instrEl.appendChild(li);
   });
 
-  // Show or hide the "Add to Workout" button in the modal based on state
-  const addSection = document.getElementById('modalAddSection');
-  const addBtn = document.getElementById('modalAddBtn');
+  // only show the Add button when the workout builder is open
+  const addSection = document.getElementById('popupAddSection');
+  const addBtn = document.getElementById('popupAddBtn');
   if (isCreating) {
     addSection.style.display = '';
     const already = stagedExercises.some(e => e.exerciseId === ex.exerciseId);
@@ -353,29 +440,27 @@ function openModal(ex) {
     addSection.style.display = 'none';
   }
 
-  document.getElementById('modalOverlay').classList.remove('hidden');
+  document.getElementById('popupOverlay').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
 
-function closeModal() {
-  document.getElementById('modalOverlay').classList.add('hidden');
+function closePopup() {
+  document.getElementById('popupOverlay').classList.add('hidden');
   document.body.style.overflow = '';
-  currentModalExercise = null;
+  openExercise = null;
 }
 
-document.getElementById('modalClose').addEventListener('click', closeModal);
-document.getElementById('modalOverlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
+document.getElementById('popupClose').addEventListener('click', closePopup);
+document.getElementById('popupOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closePopup();
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopup(); });
 
-// "Add to Workout" inside the modal popup
-document.getElementById('modalAddBtn').addEventListener('click', () => {
-  if (!currentModalExercise) return;
-  addExerciseToWorkout(currentModalExercise);
-  const addBtn = document.getElementById('modalAddBtn');
-  addBtn.textContent = '✓ Already added';
-  addBtn.disabled = true;
+// Add to Workout button inside the popup
+document.getElementById('popupAddBtn').addEventListener('click', e => {
+  addExerciseToWorkout(openExercise);
+  e.currentTarget.textContent = '✓ Already added';
+  e.currentTarget.disabled = true;
 });
 
 // ─── Cards ────────────────────────────────────────────────────────────────────
@@ -440,7 +525,7 @@ function renderCard(ex) {
   addBtn.textContent = already ? '✓ Added' : '+ Add';
   addBtn.disabled = already;
   addBtn.addEventListener('click', e => {
-    e.stopPropagation(); // don't open the modal when clicking Add
+    e.stopPropagation(); // don't open the popup when clicking Add
     addExerciseToWorkout(ex);
   });
 
@@ -450,9 +535,8 @@ function renderCard(ex) {
   card.appendChild(cardImg);
   card.appendChild(cardBody);
 
-  // Clicking the card (not the Add button) opens the detail modal
-  card.style.cursor = 'pointer';
-  card.addEventListener('click', () => openModal(ex));
+  // clicking the card (not the Add button) opens the detail popup
+  card.addEventListener('click', () => openPopup(ex));
 
   return card;
 }
