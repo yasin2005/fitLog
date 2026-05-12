@@ -1,0 +1,610 @@
+:root {
+  /* Dark surface hierarchy — bg is deepest, surface-2 is lightest */
+  --bg: #0d0f14;
+  --surface: #161922;
+  --surface-2: #1f2330;
+  --border: #262b3a;
+  /* Typography */
+  --text: #e8eaf0;
+  --muted: #8b91a3;
+  /* Brand green — accent-dim is the hover/active variant */
+  --accent: #8aff5e;
+  --accent-dim: #5ed98a;
+  --danger: #ff6b6b;
+  /* Shared shape + depth tokens */
+  --radius: 14px;
+  --shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: rgba(13,15,20,0.85);
+  backdrop-filter: blur(12px); /* frosted-glass effect; semi-transparent bg lets page content show through */
+  z-index: 10;
+}
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; }
+.brand-mark { color: var(--accent); font-size: 22px; }
+.nav { display: flex; gap: 4px; flex: 1; }
+.nav-link {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-link.active { color: var(--text); background: var(--surface); }
+
+/* Two-column layout: search on left, sidebar on right */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 24px;
+  padding: 32px 16px 32px 32px;
+  max-width: 1300px;
+  margin: 0 auto;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────────────────── */
+.side-col {
+  position: sticky;
+  top: 84px; /* matches topbar height (16px padding × 2 + ~52px content) so sidebar never slides under the nav */
+}
+.sidebar-panel {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sidebar-panel.hidden { display: none; }
+.sidebar-tagline { margin: 0; font-size: 13px; color: var(--muted); }
+.sidebar-title { margin: 0; font-size: 16px; font-weight: 700; }
+.sidebar-section-title { margin: 4px 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+
+.sidebar-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.sidebar-input {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  width: 100%;
+}
+.sidebar-input:focus { outline: none; border-color: var(--accent); }
+.sidebar-textarea { resize: vertical; min-height: 60px; }
+
+/* Capped height with scroll so a long exercise list doesn't push the Save button off-screen */
+.sidebar-ex-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.sidebar-ex-empty { font-size: 12px; color: var(--muted); font-style: italic; padding: 4px 0; }
+.sidebar-ex-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 6px 10px;
+  background-color: var(--bg);
+  border-radius: 6px;
+}
+.sidebar-ex-remove {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 4px;
+  flex-shrink: 0; /* prevents the ✕ button from shrinking when the exercise name is long */
+}
+.sidebar-ex-remove:hover { color: var(--danger); }
+
+.sidebar-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.btn-block { width: 100%; }
+
+/* ── Inner pages (My Workouts, History) ──────────────────────────────────── */
+.page-content { max-width: 1000px; margin: 0 auto; padding: 40px 32px; }
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.page-header h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.02em; }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  font-size: 15px;
+}
+.empty-state p { margin: 0 0 16px; }
+
+/* My Workouts grid */
+.workout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+.workout-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.workout-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.workout-card-name { margin: 0; font-size: 17px; }
+.workout-card-desc { margin: 0; font-size: 13px; color: var(--muted); }
+.workout-ex-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.workout-ex-list li {
+  font-size: 13px;
+  padding: 5px 10px;
+  background-color: var(--bg);
+  border-radius: 6px;
+}
+
+/* Danger button */
+.btn-danger {
+  background-color: transparent;
+  border-color: var(--danger);
+  color: var(--danger);
+  font-size: 12px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+}
+.btn-danger:hover { background-color: var(--danger); color: #fff; }
+
+/* History list */
+.history-list { display: flex; flex-direction: column; gap: 16px; }
+.history-item {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline; /* aligns workout name and date to the same text baseline despite different font sizes */
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.history-name { font-weight: 700; font-size: 15px; }
+.history-date { font-size: 13px; }
+.history-ex-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.history-ex-list li {
+  font-size: 12px;
+  padding: 3px 10px;
+  background-color: var(--bg);
+  border-radius: 999px;
+  color: var(--muted);
+}
+
+/* Hero search section */
+.hero {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  margin-bottom: 28px;
+}
+.hero h1 { font-size: 32px; margin: 0 0 8px; letter-spacing: -0.02em; }
+.subtitle { color: var(--muted); margin: 0 0 24px; }
+
+/* Search bar */
+.search { display: flex; gap: 12px; margin-bottom: 16px; }
+.search-input {
+  flex: 1;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--muted);
+}
+.search-input:focus-within { border-color: var(--accent); color: var(--accent); }
+.search-input input {
+  flex: 1;
+  background: transparent;
+  border: none; outline: none;
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* Clear button inside search bar */
+.search-clear-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.search-clear-btn:hover { color: var(--text); }
+
+/* Filter dropdowns */
+.filters { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.filter-dropdown { position: relative; }
+
+.filter-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s;
+}
+.filter-trigger:hover { border-color: var(--accent); }
+.filter-trigger.open { border-color: var(--accent); }
+
+/* 999px border-radius is a common trick to guarantee pill shape at any height */
+.filter-badge {
+  background: var(--accent);
+  color: #0a0d0a;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+.filter-badge.hidden { display: none; }
+
+.filter-chevron { flex-shrink: 0; color: var(--muted); transition: transform 0.15s; }
+.filter-trigger.open .filter-chevron { transform: rotate(180deg); }
+
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 240px;
+  box-shadow: var(--shadow);
+}
+.filter-panel.hidden { display: none; }
+
+.filter-options { display: flex; flex-direction: column; }
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 7px 10px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.1s;
+}
+/* CSS-only custom checkbox: ::before draws the empty box; no <input type="checkbox"> needed */
+.filter-option::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: background 0.1s, border-color 0.1s;
+}
+.filter-option:hover { background: var(--surface-2); }
+.filter-option.active::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  /* Inline SVG data URI renders the checkmark without a separate image file */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='1,4 4,7 9,1' fill='none' stroke='%230a0d0a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 10px 8px;
+}
+
+.filter-option-divider { height: 1px; background: var(--border); margin: 2px 0; }
+
+.filter-clear {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  text-align: left;
+}
+.filter-clear:hover { color: var(--danger); }
+
+/* Buttons */
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.05s, background 0.15s, border-color 0.15s;
+  font-family: inherit;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn:hover { background: var(--surface); }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background-color: var(--accent); color: #0a0d0a; border-color: var(--accent); }
+.btn-primary:hover { background-color: var(--accent-dim); }
+.btn-ghost { background: transparent; }
+.btn-sm { padding: 6px 12px; font-size: 13px; }
+
+/* Results header and count */
+.results-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+.results-header h2 { font-size: 18px; margin: 0; }
+.muted { color: var(--muted); font-size: 13px; }
+
+/* Exercise cards grid */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.card-img {
+  height: 140px;
+  background: linear-gradient(135deg, #2a2f40 0%, #1a1d28 100%);
+  overflow: hidden;
+}
+.card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.card-body { padding: 14px; }
+.card-body h3 { margin: 0 0 8px; font-size: 15px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.tag {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+/* Static card placeholder — shown instead of the GIF in the grid */
+.card-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.placeholder-initial {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--part-color, var(--accent));
+  opacity: 0.5;
+  line-height: 1;
+}
+.placeholder-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: capitalize;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* Fallback shown in the modal when the GIF URL is broken */
+.modal-img-fallback {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Small hint text at the bottom of each card */
+.card-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── Modal ──────────────────────────────────────────────────────────────── */
+
+/* Dark semi-transparent backdrop covering the full screen */
+.modal-overlay {
+  position: fixed;
+  inset: 0; /* shorthand for top/right/bottom/left: 0 — covers the full viewport */
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+
+/* The white (dark-themed) card in the center */
+.modal {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-width: 780px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* ✕ close button pinned to top-right corner */
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+.modal-close:hover { background-color: var(--danger); border-color: var(--danger); }
+
+/* Single-column layout: info on top, full-width GIF on the bottom */
+.modal-content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Info pane */
+.modal-info { padding: 28px 28px 20px; }
+.modal-info h2 {
+  margin: 0 32px 12px 0; /* leave room for the close button */
+  font-size: 20px;
+  text-transform: capitalize;
+  letter-spacing: -0.01em;
+}
+
+/* GIF pane — full width at the bottom so the animation is fully visible */
+.modal-gif {
+  background: linear-gradient(135deg, #2a2f40 0%, #1a1d28 100%);
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* contain (not cover) so the full animation is visible without cropping */
+.modal-gif img { width: 100%; max-height: 420px; object-fit: contain; display: block; }
+
+/* Each labelled section inside the info pane */
+.modal-section { margin-top: 18px; }
+.modal-section h4 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+.modal-section p {
+  margin: 0;
+  font-size: 14px;
+  text-transform: capitalize;
+  color: var(--text);
+}
+
+/* Numbered step list */
+.modal-section ol {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.modal-section ol li {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>History – FitLog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◆</span>
+      <span class="brand-name">FitLog</span>
+    </div>
+    <nav class="nav">
+      <a href="/" class="nav-link">Search</a>
+      <a href="/workouts" class="nav-link">My Workouts</a>
+      <a href="/history" class="nav-link active">History</a>
+    </nav>
+  </header>
+
+  <main class="page-content">
+    <div class="page-header">
+      <h1>This Week</h1>
+      <p class="subtitle">Workouts you've logged in the past 7 days.</p>
+    </div>
+
+    <% if (logs.length === 0) { %>
+      <div class="empty-state">
+        <p>No workouts logged this week.</p>
+        <a href="/workouts" class="btn btn-primary">Go to My Workouts</a>
+      </div>
+    <% } else { %>
+      <div class="history-list">
+        <% logs.forEach(function(log) { %>
+          <div class="history-item">
+            <div class="history-header">
+              <span class="history-name"><%= log.workoutName %></span>
+              <span class="history-date muted">
+                <%= new Date(log.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) %>
+              </span>
+            </div>
+            <%# Guard against logs whose original workout was deleted (populate returns null) %>
+            <% if (log.workoutId && log.workoutId.exercises) { %>
+              <ul class="history-ex-list">
+                <% log.workoutId.exercises.forEach(function(ex) { %>
+                  <%# API names are lowercase — title-case for display %>
+                  <li><%= ex.name.replace(/\b\w/g, function(c){ return c.toUpperCase(); }) %></li>
+                <% }); %>
+              </ul>
+            <% } %>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </main>
+</body>
+</html>

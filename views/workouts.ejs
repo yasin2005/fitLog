@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Workouts – FitLog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◆</span>
+      <span class="brand-name">FitLog</span>
+    </div>
+    <nav class="nav">
+      <a href="/" class="nav-link">Search</a>
+      <a href="/workouts" class="nav-link active">My Workouts</a>
+      <a href="/history" class="nav-link">History</a>
+    </nav>
+  </header>
+
+  <main class="page-content">
+    <div class="page-header">
+      <div>
+        <h1>My Workouts</h1>
+        <p class="subtitle">Saved routines you've built.</p>
+      </div>
+    </div>
+
+    <% if (workouts.length === 0) { %>
+      <div class="empty-state">
+        <p>No workouts saved yet.</p>
+        <a href="/" class="btn btn-primary">Go build one</a>
+      </div>
+    <% } else { %>
+      <div class="workout-grid">
+        <% workouts.forEach(function(w) { %>
+          <div class="workout-card">
+            <div class="workout-card-header">
+              <h2 class="workout-card-name"><%= w.name %></h2>
+              <button class="btn btn-sm btn-danger" onclick="deleteWorkout('<%= w._id %>')">Delete</button>
+            </div>
+
+            <% if (w.description) { %>
+              <p class="workout-card-desc"><%= w.description %></p>
+            <% } %>
+
+            <p class="muted"><%= w.exercises.length %> exercise<%= w.exercises.length !== 1 ? 's' : '' %></p>
+
+            <ul class="workout-ex-list">
+              <% w.exercises.forEach(function(ex) { %>
+                <%# Exercise names from the API are all lowercase; this title-cases them for display %>
+                <li><%= ex.name.replace(/\b\w/g, function(c){ return c.toUpperCase(); }) %></li>
+              <% }); %>
+            </ul>
+
+            <button class="btn btn-primary btn-block" onclick="logWorkout('<%= w._id %>')">Log this workout</button>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </main>
+
+  <!-- Custom delete confirmation modal -->
+  <div class="modal-overlay hidden" id="deleteOverlay">
+    <div class="modal" style="max-width:380px">
+      <div class="modal-info">
+        <h2 style="font-size:17px;margin-bottom:8px">Delete workout?</h2>
+        <p style="font-size:14px;color:var(--muted);margin:0 0 20px">This cannot be undone.</p>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+          <button class="btn" id="cancelDeleteBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function logWorkout(id) {
+      const res = await fetch('/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workoutId: id })
+      });
+      const data = await res.json();
+      if (data.success) window.location.href = '/history';
+    }
+
+    let pendingDeleteId = null;
+
+    function deleteWorkout(id) {
+      pendingDeleteId = id;
+      document.getElementById('deleteOverlay').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteModal() {
+      pendingDeleteId = null;
+      document.getElementById('deleteOverlay').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
+    document.getElementById('deleteOverlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('deleteOverlay')) closeDeleteModal();
+    });
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+      if (!pendingDeleteId) return;
+      const res = await fetch('/workouts/' + pendingDeleteId, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) window.location.reload();
+    });
+  </script>
+</body>
+</html>
