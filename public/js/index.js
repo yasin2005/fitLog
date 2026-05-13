@@ -1,5 +1,15 @@
 const toTitleCase = str => str.replace(/\b\w/g, c => c.toUpperCase());
 
+function buildTags(el, items) {
+  el.innerHTML = '';
+  items.forEach(t => {
+    const span = document.createElement('span');
+    span.className = 'tag';
+    span.textContent = t;
+    el.appendChild(span);
+  });
+}
+
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 const form        = document.getElementById('searchForm');
 const queryInput  = document.getElementById('searchQuery');
@@ -397,13 +407,7 @@ function openPopup(ex) {
   document.getElementById('popupName').textContent = toTitleCase(ex.name);
 
   const tagsEl = document.getElementById('popupTags');
-  tagsEl.innerHTML = '';
-  [...(ex.bodyParts || []), ...(ex.equipments || [])].forEach(t => {
-    const span = document.createElement('span');
-    span.className = 'tag';
-    span.textContent = t;
-    tagsEl.appendChild(span);
-  });
+  buildTags(tagsEl, [...(ex.bodyParts || []), ...(ex.equipments || [])]);
 
   const targetSection = document.getElementById('popupTargetSection');
   if (ex.targetMuscles && ex.targetMuscles.length > 0) {
@@ -511,12 +515,7 @@ function renderCard(ex) {
 
   const tags = document.createElement('div');
   tags.className = 'tags';
-  [...(ex.bodyParts || []), ...(ex.equipments || [])].forEach(t => {
-    const span = document.createElement('span');
-    span.className = 'tag';
-    span.textContent = t;
-    tags.appendChild(span);
-  });
+  buildTags(tags, [...(ex.bodyParts || []), ...(ex.equipments || [])]);
 
   // "Add to workout" button — only shown while creating a workout
   const addBtn = document.createElement('button');
