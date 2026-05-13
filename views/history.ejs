@@ -1,26 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>History – FitLog</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/styles.css" />
+  <%- include('partials/head', { title: 'History' }) %>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark">◆</span>
-      <span class="brand-name">FitLog</span>
-    </div>
-    <nav class="nav">
-      <a href="/" class="nav-link">Search</a>
-      <a href="/workouts" class="nav-link">My Workouts</a>
-      <a href="/history" class="nav-link active">History</a>
-    </nav>
-  </header>
+  <%- include('partials/nav', { active: 'history' }) %>
 
   <main class="page-content">
     <div class="page-header">

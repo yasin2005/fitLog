@@ -1,3 +1,5 @@
+const toTitleCase = str => str.replace(/\b\w/g, c => c.toUpperCase());
+
 const workoutsData = JSON.parse(document.getElementById('workoutsData').dataset.workouts);
 
 // ── Exercise detail popup ─────────────────────────────────────────────
@@ -9,8 +11,7 @@ function openExPopup(ex) {
   // Hide the image slot if no GIF is available
   img.onerror = () => { img.style.display = 'none'; };
 
-  document.getElementById('exPopupName').textContent =
-    ex.name.replace(/\b\w/g, c => c.toUpperCase());
+  document.getElementById('exPopupName').textContent = toTitleCase(ex.name);
 
   // Build body-part + equipment tag pills
   const tagsEl = document.getElementById('exPopupTags');

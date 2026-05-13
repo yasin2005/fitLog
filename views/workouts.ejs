@@ -1,26 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Workouts – FitLog</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/styles.css" />
+  <%- include('partials/head', { title: 'Workouts' }) %>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark">◆</span>
-      <span class="brand-name">FitLog</span>
-    </div>
-    <nav class="nav">
-      <a href="/" class="nav-link">Search</a>
-      <a href="/workouts" class="nav-link active">My Workouts</a>
-      <a href="/history" class="nav-link">History</a>
-    </nav>
-  </header>
+  <%- include('partials/nav', { active: 'workouts' }) %>
 
   <main class="page-content">
     <div class="page-header">
@@ -78,36 +62,8 @@
     <% } %>
   </main>
 
-  <!-- ── Exercise detail popup (same structure as main page, no Add button) ── -->
-  <div class="popup-overlay hidden" id="exPopupOverlay">
-    <div class="popup">
-      <button class="popup-close" id="exPopupClose">✕</button>
-      <div class="popup-content">
-        <div class="popup-info">
-          <h2 id="exPopupName"></h2>
-          <div class="tags" id="exPopupTags"></div>
-
-          <div class="popup-section" id="exPopupTargetSection">
-            <h4>Target muscle</h4>
-            <p id="exPopupTarget"></p>
-          </div>
-
-          <div class="popup-section" id="exPopupSecondarySection">
-            <h4>Secondary muscles</h4>
-            <p id="exPopupSecondary"></p>
-          </div>
-
-          <div class="popup-section">
-            <h4>How to do it</h4>
-            <ol id="exPopupInstructions"></ol>
-          </div>
-        </div>
-        <div class="popup-gif">
-          <img id="exPopupImg" src="" alt="" />
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Exercise detail popup -->
+  <%- include('partials/popup', { prefix: 'exPopup', showAdd: false }) %>
 
 
   <!-- Workout data for the JS — exercises are read via dataset in workouts.js -->

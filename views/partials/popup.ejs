@@ -1,0 +1,35 @@
+  <div class="popup-overlay hidden" id="<%= prefix %>Overlay">
+    <div class="popup">
+      <button class="popup-close" id="<%= prefix %>Close">✕</button>
+      <div class="popup-content">
+        <div class="popup-info">
+          <h2 id="<%= prefix %>Name"></h2>
+          <div class="tags" id="<%= prefix %>Tags"></div>
+
+          <div class="popup-section" id="<%= prefix %>TargetSection">
+            <h4>Target muscle</h4>
+            <p id="<%= prefix %>Target"></p>
+          </div>
+
+          <div class="popup-section" id="<%= prefix %>SecondarySection">
+            <h4>Secondary muscles</h4>
+            <p id="<%= prefix %>Secondary"></p>
+          </div>
+
+          <div class="popup-section">
+            <h4>How to do it</h4>
+            <ol id="<%= prefix %>Instructions"></ol>
+          </div>
+
+          <% if (showAdd) { %>
+          <div class="popup-section" id="<%= prefix %>AddSection" style="display:none">
+            <button class="btn btn-primary" id="<%= prefix %>AddBtn">+ Add to Workout</button>
+          </div>
+          <% } %>
+        </div>
+        <div class="popup-gif">
+          <img id="<%= prefix %>Img" src="" alt="" />
+        </div>
+      </div>
+    </div>
+  </div>

@@ -14,6 +14,7 @@
   /* Shared shape + depth tokens */
   --radius: 14px;
   --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  --surface-gradient: linear-gradient(135deg, #2a2f40 0%, #1a1d28 100%);
 }
 
 * { box-sizing: border-box; }
@@ -40,6 +41,7 @@ body {
   z-index: 10;
 }
 .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; }
+.brand a { text-decoration: none; color: inherit; display: contents; }
 .brand-mark { color: var(--accent); font-size: 22px; }
 .nav { display: flex; gap: 4px; flex: 1; }
 .nav-link {
@@ -469,7 +471,7 @@ body {
 .card:hover { transform: translateY(-2px); border-color: var(--accent); }
 .card-img {
   height: 140px;
-  background: linear-gradient(135deg, #2a2f40 0%, #1a1d28 100%);
+  background: var(--surface-gradient);
   overflow: hidden;
 }
 
@@ -572,13 +574,12 @@ body {
 .popup-info h2 {
   margin: 0 32px 12px 0; /* leave room for the close button */
   font-size: 20px;
-  text-transform: capitalize;
   letter-spacing: -0.01em;
 }
 
 /* GIF pane — full width at the bottom so the animation is fully visible */
 .popup-gif {
-  background: linear-gradient(135deg, #2a2f40 0%, #1a1d28 100%);
+  background: var(--surface-gradient);
   border-radius: 0 0 var(--radius) var(--radius);
   overflow: hidden;
   display: flex;

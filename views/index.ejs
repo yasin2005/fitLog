@@ -1,26 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FitLog</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/styles.css" />
+  <%- include('partials/head', { title: 'FitLog' }) %>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark">◆</span>
-      <span class="brand-name">FitLog</span>
-    </div>
-    <nav class="nav">
-      <a href="/" class="nav-link active">Search</a>
-      <a href="/workouts" class="nav-link">My Workouts</a>
-      <a href="/history" class="nav-link">History</a>
-    </nav>
-  </header>
+  <%- include('partials/nav', { active: 'search' }) %>
 
   <main class="layout">
     <!-- Left: search area -->
@@ -89,7 +73,7 @@
                 <button type="button" class="filter-option" data-value="smith machine">Smith Machine</button>
                 <button type="button" class="filter-option" data-value="weighted">Weighted</button>
               </div>
-              <button type="button" class="filter-clear" id="clearEquipments">Clear all</button>
+              <button type="button" class="filter-clear" id="clearEquipments">Clear All</button>
             </div>
           </div>
         </div>
@@ -122,7 +106,7 @@
         </label>
 
         <label class="sidebar-label">
-          Description <span class="muted">(optional)</span>
+          Description <span class="muted">(Optional)</span>
           <textarea id="workoutDesc" class="sidebar-input sidebar-textarea" placeholder="Notes about this workout…"></textarea>
         </label>
 
@@ -144,45 +128,10 @@
   </main>
 
   <!-- Exercise detail popup -->
-  <div class="popup-overlay hidden" id="popupOverlay">
-    <div class="popup">
-      <button class="popup-close" id="popupClose">✕</button>
-      <div class="popup-content">
-        <div class="popup-info">
-          <h2 id="popupName"></h2>
-          <div class="tags" id="popupTags"></div>
-
-          <div class="popup-section" id="popupTargetSection">
-            <h4>Target muscle</h4>
-            <p id="popupTarget"></p>
-          </div>
-
-          <div class="popup-section" id="popupSecondarySection">
-            <h4>Secondary muscles</h4>
-            <p id="popupSecondary"></p>
-          </div>
-
-          <div class="popup-section">
-            <h4>How to do it</h4>
-            <ol id="popupInstructions"></ol>
-          </div>
-
-          <!-- Add to workout button — only visible while creating a workout -->
-          <div class="popup-section" id="popupAddSection" style="display:none">
-            <button class="btn btn-primary" id="popupAddBtn">+ Add to Workout</button>
-          </div>
-        </div>
-        <div class="popup-gif">
-          <img id="popupImg" src="" alt="" />
-        </div>
-      </div>
-    </div>
-  </div>
+  <%- include('partials/popup', { prefix: 'popup', showAdd: true }) %>
 
   <% if (editWorkout) { %>
-  <div id="editData" hidden
-       data-id="<%= editWorkout._id %>"
-       data-workout="<%= JSON.stringify(editWorkout) %>"></div>
+  <div id="editData" hidden data-id="<%= editWorkout._id %>" data-workout="<%= JSON.stringify(editWorkout) %>"></div>
   <% } %>
   <script src="/js/index.js"></script>
 </body>

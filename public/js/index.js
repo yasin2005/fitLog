@@ -1,3 +1,5 @@
+const toTitleCase = str => str.replace(/\b\w/g, c => c.toUpperCase());
+
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 const form        = document.getElementById('searchForm');
 const queryInput  = document.getElementById('searchQuery');
@@ -196,7 +198,7 @@ function renderSidebarList() {
     topRow.className = 'sidebar-ex-top';
 
     const name = document.createElement('span');
-    name.textContent = ex.name.replace(/\b\w/g, c => c.toUpperCase());
+    name.textContent = toTitleCase(ex.name);
 
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
@@ -392,7 +394,7 @@ function openPopup(ex) {
   const fallback = document.getElementById('popupImgFallback');
   if (fallback) fallback.style.display = 'none';
 
-  document.getElementById('popupName').textContent = ex.name.replace(/\b\w/g, c => c.toUpperCase());
+  document.getElementById('popupName').textContent = toTitleCase(ex.name);
 
   const tagsEl = document.getElementById('popupTags');
   tagsEl.innerHTML = '';
@@ -505,7 +507,7 @@ function renderCard(ex) {
   cardBody.className = 'card-body';
 
   const h3 = document.createElement('h3');
-  h3.textContent = ex.name.replace(/\b\w/g, c => c.toUpperCase());
+  h3.textContent = toTitleCase(ex.name);
 
   const tags = document.createElement('div');
   tags.className = 'tags';
