@@ -2,7 +2,7 @@
 
 **Submitted by:** Yasin Ibrahim (yibrahi2)
 
-**Group Members:** Yasin Ibrahim (yibrahi2), Safwah Ashraf (sashraf4)
+**Group Members:** Yasin Ibrahim (yibrahi2), Safwah Ashraf (sashraf4), Mohammed Hasan (mhasan12)
 
 **App Description:** FitLog lets users search thousands of exercises by name, muscle group, or equipment, build a workout by adding exercises, then log and review their workout history — all backed by MongoDB.
 
