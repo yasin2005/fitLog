@@ -20,7 +20,7 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <input type="text" id="searchQuery" placeholder="Try 'squat', 'biceps', or 'kettlebell'..." />
-            <button type="button" id="clearSearchBtn" class="search-clear-btn" style="display:none" aria-label="Clear search">✕</button>
+            <button type="button" id="clearSearchBtn" class="search-clear-btn hidden" aria-label="Clear Search">✕</button>
           </div>
           <button type="submit" class="btn btn-primary">Search</button>
         </form>
@@ -29,13 +29,13 @@
           <!-- Muscle group dropdown -->
           <div class="filter-dropdown">
             <button type="button" class="filter-trigger" id="bodyPartTrigger">
-              <span>Muscle group</span>
+              <span>Muscle Group</span>
               <span class="filter-badge hidden" id="bodyPartBadge"></span>
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" class="filter-chevron"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
             <div class="filter-panel hidden" id="bodyPartPanel">
               <div class="filter-options" id="bodyPartPills">
-                <button type="button" class="filter-option filter-option-all" id="selectAllBodyParts">Select all</button>
+                <button type="button" class="filter-option filter-option-all" id="selectAllBodyParts">Select All</button>
                 <div class="filter-option-divider"></div>
                 <button type="button" class="filter-option" data-value="back">Back</button>
                 <button type="button" class="filter-option" data-value="cardio">Cardio</button>
@@ -47,7 +47,7 @@
                 <button type="button" class="filter-option" data-value="upper legs">Upper Legs</button>
                 <button type="button" class="filter-option" data-value="waist">Waist</button>
               </div>
-              <button type="button" class="filter-clear" id="clearBodyParts">Clear all</button>
+              <button type="button" class="filter-clear" id="clearBodyParts">Clear All</button>
             </div>
           </div>
 
@@ -60,7 +60,7 @@
             </button>
             <div class="filter-panel hidden" id="equipmentPanel">
               <div class="filter-options" id="equipmentPills">
-                <button type="button" class="filter-option filter-option-all" id="selectAllEquipments">Select all</button>
+                <button type="button" class="filter-option filter-option-all" id="selectAllEquipments">Select All</button>
                 <div class="filter-option-divider"></div>
                 <button type="button" class="filter-option" data-value="assisted">Assisted</button>
                 <button type="button" class="filter-option" data-value="band">Band</button>
@@ -90,39 +90,48 @@
     <!-- Right: workout creator sidebar -->
     <aside class="side-col">
 
-      <!-- Idle state: just the create button -->
-      <div id="sidebarIdle" class="sidebar-panel">
-        <p class="sidebar-tagline">Build a workout from your search results.</p>
-        <button class="btn btn-primary btn-block" id="startCreateBtn">+ Create Workout</button>
-      </div>
-
-      <!-- Creating state: form + exercise list (hidden until button clicked) -->
-      <div id="sidebarCreating" class="sidebar-panel hidden">
-        <h2 class="sidebar-title">New Workout</h2>
-
-        <label class="sidebar-label">
-          Name
-          <input type="text" id="workoutName" class="sidebar-input" placeholder="e.g. Push Day" />
-        </label>
-
-        <label class="sidebar-label">
-          Description <span class="muted">(Optional)</span>
-          <textarea id="workoutDesc" class="sidebar-input sidebar-textarea" placeholder="Notes about this workout…"></textarea>
-        </label>
-
-        <h3 class="sidebar-section-title">Exercises <span class="muted" id="exCount">(0)</span></h3>
-        <ul class="sidebar-ex-list" id="sidebarExList">
-          <li class="sidebar-ex-empty">Search for exercises and click Add.</li>
-        </ul>
-
-        <!-- Inline error shown instead of an alert when validation fails -->
-        <p class="save-error hidden" id="saveError"></p>
-
-        <div class="sidebar-actions">
-          <button class="btn btn-primary btn-block" id="saveWorkoutBtn">Save Workout</button>
-          <button class="btn btn-block" id="cancelCreateBtn">Cancel</button>
+      <% if (locals.userId) { %>
+        <!-- Idle state: just the create button -->
+        <div id="sidebarIdle" class="sidebar-panel">
+          <p class="sidebar-tagline">Build a workout from your search results.</p>
+          <button class="btn btn-primary btn-block" id="startCreateBtn">+ Create Workout</button>
         </div>
-      </div>
+
+        <!-- Creating state: form + exercise list (hidden until button clicked) -->
+        <div id="sidebarCreating" class="sidebar-panel hidden">
+          <h2 class="sidebar-title">New Workout</h2>
+
+          <label class="sidebar-label">
+            Name
+            <input type="text" id="workoutName" class="sidebar-input" placeholder="e.g. Push Day" />
+          </label>
+
+          <label class="sidebar-label">
+            Description <span class="muted">(Optional)</span>
+            <textarea id="workoutDesc" class="sidebar-input sidebar-textarea" placeholder="Notes about this workout…"></textarea>
+          </label>
+
+          <h3 class="sidebar-section-title">Exercises <span class="muted" id="exerciseCount">(0)</span></h3>
+          <ul class="sidebar-exercise-list" id="sidebarExerciseList">
+            <li class="sidebar-exercise-empty">Search for exercises and click Add.</li>
+          </ul>
+
+          <!-- Inline error shown instead of an alert when validation fails -->
+          <p class="save-error hidden" id="saveError"></p>
+
+          <div class="sidebar-actions">
+            <button class="btn btn-primary btn-block" id="saveWorkoutBtn">Save Workout</button>
+            <button class="btn btn-block" id="cancelCreateBtn">Cancel</button>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="sidebar-panel">
+          <p class="sidebar-tagline">Build a workout from your search results.</p>
+          <p class="muted">Log in to create and save workouts.</p>
+          <a href="/auth/register" class="btn btn-primary btn-block">Create Account</a>
+          <a href="/auth/login" class="btn btn-block">Log In</a>
+        </div>
+      <% } %>
 
     </aside>
   </main>

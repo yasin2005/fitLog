@@ -6,8 +6,7 @@ const Workout = require('../models/Workout');
 router.post('/', async (req, res) => {
   try {
     const { name, description, exercises } = req.body;
-    const workout = new Workout({ name, description, exercises });
-    await workout.save();
+    const workout = await Workout.create({ userId: req.session.userId, name, description, exercises });
     res.json({ success: true, workout });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -17,7 +16,7 @@ router.post('/', async (req, res) => {
 // GET /workouts — render the My Workouts page
 router.get('/', async (req, res) => {
   try {
-    const workouts = await Workout.find().sort({ createdAt: -1 });
+    const workouts = await Workout.find({ userId: req.session.userId }).sort({ createdAt: -1 });
     res.render('workouts', { workouts });
   } catch (err) {
     res.status(500).send('Server error');
@@ -28,22 +27,20 @@ router.get('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { name, description, exercises } = req.body;
-    // Keep only known schema fields — unknown properties from the client cause Mongoose validation errors
-    const cleanExercises = (exercises || []).map(ex => ({
-      exerciseId:       ex.exerciseId,
-      name:             ex.name,
-      gifUrl:           ex.gifUrl           || '',
-      targetMuscles:    ex.targetMuscles    || [],
-      bodyParts:        ex.bodyParts        || [],
-      equipments:       ex.equipments       || [],
-      secondaryMuscles: ex.secondaryMuscles || [],
-      instructions:     ex.instructions     || [],
-      sets:             Math.max(1, parseInt(ex.sets)  || 3),
-      reps:             Math.max(1, parseInt(ex.reps)  || 10)
+    const cleanExercises = (exercises || []).map(exercise => ({
+      exerciseId:       exercise.exerciseId,
+      name:             exercise.name,
+      gifUrl:           exercise.gifUrl           || '',
+      targetMuscles:    exercise.targetMuscles    || [],
+      bodyParts:        exercise.bodyParts        || [],
+      equipments:       exercise.equipments       || [],
+      secondaryMuscles: exercise.secondaryMuscles || [],
+      instructions:     exercise.instructions     || [],
+      sets:             Math.max(1, parseInt(exercise.sets)  || 3),
+      reps:             Math.max(1, parseInt(exercise.reps)  || 10)
     }));
-    // $set updates only these fields without replacing the whole document
-    const workout = await Workout.findByIdAndUpdate(
-      req.params.id,
+    const workout = await Workout.findOneAndUpdate(
+      { _id: req.params.id, userId: req.session.userId },
       { $set: { name, description, exercises: cleanExercises } },
       { returnDocument: 'after' }
     );
@@ -57,7 +54,7 @@ router.put('/:id', async (req, res) => {
 // POST /workouts/:id/delete — delete a saved workout (forms can't send DELETE)
 router.post('/:id/delete', async (req, res) => {
   try {
-    await Workout.findByIdAndDelete(req.params.id);
+    await Workout.findOneAndDelete({ _id: req.params.id, userId: req.session.userId });
     res.redirect('/workouts');
   } catch (err) {
     res.status(500).send('Server error');

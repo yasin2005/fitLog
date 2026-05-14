@@ -1,73 +1,76 @@
 const toTitleCase = str => str.replace(/\b\w/g, c => c.toUpperCase());
 
-const workoutsData = JSON.parse(document.getElementById('workoutsData').dataset.workouts);
-
-// ── Exercise detail popup ─────────────────────────────────────────────
-function openExPopup(ex) {
-  const img = document.getElementById('exPopupImg');
-  img.style.display = 'block';
-  img.src = ex.gifUrl || '';
-  img.alt = ex.name;
-  // Hide the image slot if no GIF is available
-  img.onerror = () => { img.style.display = 'none'; };
-
-  document.getElementById('exPopupName').textContent = toTitleCase(ex.name);
-
-  // Build body-part + equipment tag pills
-  const tagsEl = document.getElementById('exPopupTags');
-  tagsEl.innerHTML = '';
-  [...(ex.bodyParts || []), ...(ex.equipments || [])].forEach(t => {
+function buildTags(el, items) {
+  el.innerHTML = '';
+  items.forEach(t => {
     const span = document.createElement('span');
     span.className = 'tag';
     span.textContent = t;
-    tagsEl.appendChild(span);
+    el.appendChild(span);
   });
+}
 
-  const targetSection = document.getElementById('exPopupTargetSection');
-  if (ex.targetMuscles && ex.targetMuscles.length > 0) {
-    document.getElementById('exPopupTarget').textContent = ex.targetMuscles.join(', ');
+const workoutsData = JSON.parse(document.getElementById('workoutsData').dataset.workouts);
+
+// ── Exercise detail popup ─────────────────────────────────────────────
+function openExercisePopup(exercise) {
+  const img = document.getElementById('exercisePopupImg');
+  img.style.display = 'block';
+  img.src = exercise.gifUrl || '';
+  img.alt = exercise.name;
+  // Hide the image slot if no GIF is available
+  img.onerror = () => { img.style.display = 'none'; };
+
+  document.getElementById('exercisePopupName').textContent = toTitleCase(exercise.name);
+
+  buildTags(document.getElementById('exercisePopupTags'),
+    [...(exercise.bodyParts || []), ...(exercise.equipments || [])]);
+
+  const targetSection = document.getElementById('exercisePopupTargetSection');
+  if (exercise.targetMuscles && exercise.targetMuscles.length > 0) {
+    document.getElementById('exercisePopupTarget').textContent = exercise.targetMuscles.join(', ');
     targetSection.style.display = '';
   } else {
     targetSection.style.display = 'none';
   }
 
-  const secondarySection = document.getElementById('exPopupSecondarySection');
-  if (ex.secondaryMuscles && ex.secondaryMuscles.length > 0) {
-    document.getElementById('exPopupSecondary').textContent = ex.secondaryMuscles.join(', ');
+  const secondarySection = document.getElementById('exercisePopupSecondarySection');
+  if (exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0) {
+    document.getElementById('exercisePopupSecondary').textContent = exercise.secondaryMuscles.join(', ');
     secondarySection.style.display = '';
   } else {
     secondarySection.style.display = 'none';
   }
 
-  const instrEl = document.getElementById('exPopupInstructions');
+  const instrEl = document.getElementById('exercisePopupInstructions');
   instrEl.innerHTML = '';
-  (ex.instructions || []).forEach(step => {
+  (exercise.instructions || []).forEach(step => {
     const li = document.createElement('li');
     // some instructions come prefixed with "Step: 1", "Step: 2", etc. — strip that
     li.textContent = step.replace(/^Step:\s*\d+\s*/i, '');
     instrEl.appendChild(li);
   });
 
-  document.getElementById('exPopupOverlay').classList.remove('hidden');
+  document.getElementById('exercisePopupOverlay').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
 
-function closeExPopup() {
-  document.getElementById('exPopupOverlay').classList.add('hidden');
+function closeExercisePopup() {
+  document.getElementById('exercisePopupOverlay').classList.add('hidden');
   document.body.style.overflow = '';
 }
 
-document.getElementById('exPopupClose').addEventListener('click', closeExPopup);
-document.getElementById('exPopupOverlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeExPopup();
+document.getElementById('exercisePopupClose').addEventListener('click', closeExercisePopup);
+document.getElementById('exercisePopupOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeExercisePopup();
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeExPopup(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeExercisePopup(); });
 
 // Wire up click handlers on every exercise row after the DOM is ready
-document.querySelectorAll('.workout-ex-item').forEach(item => {
+document.querySelectorAll('.workout-exercise-item').forEach(item => {
   item.addEventListener('click', () => {
     const w  = workoutsData.find(w => w._id === item.dataset.workoutId);
-    const ex = w && w.exercises.find(e => e.exerciseId === item.dataset.exerciseId);
-    if (ex) openExPopup(ex);
+    const exercise = w && w.exercises.find(e => e.exerciseId === item.dataset.exerciseId);
+    if (exercise) openExercisePopup(exercise);
   });
 });

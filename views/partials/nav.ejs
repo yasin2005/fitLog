@@ -6,5 +6,12 @@
       <a href="/" class="nav-link<%= active === 'search' ? ' active' : '' %>">Search</a>
       <a href="/workouts" class="nav-link<%= active === 'workouts' ? ' active' : '' %>">My Workouts</a>
       <a href="/history" class="nav-link<%= active === 'history' ? ' active' : '' %>">History</a>
+      <% if (locals.userId) { %>
+        <form action="/auth/logout" method="POST" class="nav-logout-form">
+          <button type="submit" class="nav-link nav-logout">Logout</button>
+        </form>
+      <% } else { %>
+        <a href="/auth/login" class="nav-link nav-auth-link">Login</a>
+      <% } %>
     </nav>
   </header>

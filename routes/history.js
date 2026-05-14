@@ -7,10 +7,10 @@ const Workout = require('../models/Workout');
 router.post('/', async (req, res) => {
   try {
     const { workoutId } = req.body;
-    const workout = await Workout.findById(workoutId);
+    const workout = await Workout.findOne({ _id: workoutId, userId: req.session.userId });
     if (!workout) return res.status(404).json({ error: 'Workout not found' });
 
-    const log = new WorkoutLog({ workoutId, workoutName: workout.name });
+    const log = new WorkoutLog({ userId: req.session.userId, workoutId, workoutName: workout.name });
     await log.save();
     res.redirect('/history');
   } catch (err) {
@@ -26,8 +26,7 @@ router.get('/', async (req, res) => {
     // Set to midnight so the range starts at the beginning of the day, not mid-day 7 days ago
     since.setHours(0, 0, 0, 0);
 
-    // populate replaces workoutId with the full Workout document, giving access to its exercises
-    const logs = await WorkoutLog.find({ date: { $gte: since } })
+    const logs = await WorkoutLog.find({ userId: req.session.userId, date: { $gte: since } })
       .populate('workoutId')
       .sort({ date: -1 });
 

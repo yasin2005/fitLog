@@ -29,13 +29,13 @@
             </div>
             <%# Guard against logs whose original workout was deleted (populate returns null) %>
             <% if (log.workoutId && log.workoutId.exercises) { %>
-              <ul class="history-ex-list">
-                <% log.workoutId.exercises.forEach(function(ex) { %>
+              <ul class="history-exercise-list">
+                <% log.workoutId.exercises.forEach(function(exercise) { %>
                   <%# API names are lowercase — title-case for display %>
                   <li>
-                    <span class="history-ex-name"><%= ex.name.replace(/\b\w/g, function(c){ return c.toUpperCase(); }) %></span>
+                    <span><%= toTitleCase(exercise.name) %></span>
                     <%# Fallback to defaults for logs recorded before sets/reps were added %>
-                    <span class="history-ex-volume"><%= ex.sets || 3 %> sets &middot; <%= ex.reps || 10 %> reps</span>
+                    <span class="history-exercise-volume"><%= exercise.sets || 3 %> sets &middot; <%= exercise.reps || 10 %> reps</span>
                   </li>
                 <% }); %>
               </ul>

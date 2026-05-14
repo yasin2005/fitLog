@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Login – FitLog' }) %></head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="brand auth-brand">
+        <a href="/"><span class="brand-mark">◆</span><span class="brand-name">FitLog</span></a>
+      </div>
+      <h1 class="auth-title">Welcome back</h1>
+
+      <% if (error) { %>
+        <p class="auth-error"><%= error %></p>
+      <% } %>
+
+      <form action="/auth/login" method="POST" class="auth-form">
+        <label class="auth-label" for="email">Email</label>
+        <input class="auth-input" type="email" id="email" name="email" required autocomplete="email" />
+
+        <label class="auth-label" for="password">Password</label>
+        <input class="auth-input" type="password" id="password" name="password" required autocomplete="current-password" />
+
+        <button class="btn-primary auth-btn" type="submit">Log in</button>
+      </form>
+
+      <p class="auth-switch">Don't have an account? <a href="/auth/register">Register</a></p>
+    </div>
+  </div>
+</body>
+</html>

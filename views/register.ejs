@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Register – FitLog' }) %></head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="brand auth-brand">
+        <a href="/"><span class="brand-mark">◆</span><span class="brand-name">FitLog</span></a>
+      </div>
+      <h1 class="auth-title">Create an account</h1>
+
+      <% if (error) { %>
+        <p class="auth-error"><%= error %></p>
+      <% } %>
+
+      <form action="/auth/register" method="POST" class="auth-form">
+        <label class="auth-label" for="email">Email</label>
+        <input class="auth-input" type="email" id="email" name="email" required autocomplete="email" />
+
+        <label class="auth-label" for="password">Password</label>
+        <input class="auth-input" type="password" id="password" name="password" required autocomplete="new-password" />
+
+        <label class="auth-label" for="confirmPassword">Confirm Password</label>
+        <input class="auth-input" type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password" />
+
+        <button class="btn-primary auth-btn" type="submit">Create account</button>
+      </form>
+
+      <p class="auth-switch">Already have an account? <a href="/auth/login">Log in</a></p>
+    </div>
+  </div>
+</body>
+</html>

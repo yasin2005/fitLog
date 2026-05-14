@@ -8,10 +8,8 @@
 
   <main class="page-content">
     <div class="page-header">
-      <div>
-        <h1>My Workouts</h1>
-        <p class="subtitle">Saved routines you've built.</p>
-      </div>
+      <h1>My Workouts</h1>
+      <p class="subtitle">Saved routines you've built.</p>
     </div>
 
     <% if (workouts.length === 0) { %>
@@ -39,15 +37,15 @@
 
             <p class="muted"><%= w.exercises.length %> exercise<%= w.exercises.length !== 1 ? 's' : '' %></p>
 
-            <ul class="workout-ex-list">
-              <% w.exercises.forEach(function(ex) { %>
+            <ul class="workout-exercise-list">
+              <% w.exercises.forEach(function(exercise) { %>
                 <%# Clicking an exercise row opens the detail popup %>
                 <%# Fall back to defaults for workouts saved before sets/reps were added %>
-                <li class="workout-ex-item"
+                <li class="workout-exercise-item"
                     data-workout-id="<%= w._id %>"
-                    data-exercise-id="<%= ex.exerciseId %>">
-                  <span class="workout-ex-name"><%= ex.name.replace(/\b\w/g, function(c){ return c.toUpperCase(); }) %></span>
-                  <span class="workout-ex-volume"><%= ex.sets || 3 %> sets &middot; <%= ex.reps || 10 %> reps</span>
+                    data-exercise-id="<%= exercise.exerciseId %>">
+                  <span><%= toTitleCase(exercise.name) %></span>
+                  <span class="workout-exercise-volume"><%= exercise.sets || 3 %> sets &middot; <%= exercise.reps || 10 %> reps</span>
                 </li>
               <% }); %>
             </ul>
@@ -63,7 +61,7 @@
   </main>
 
   <!-- Exercise detail popup -->
-  <%- include('partials/popup', { prefix: 'exPopup', showAdd: false }) %>
+  <%- include('partials/popup', { prefix: 'exercisePopup', showAdd: false }) %>
 
 
   <!-- Workout data for the JS — exercises are read via dataset in workouts.js -->

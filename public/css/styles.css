@@ -41,9 +41,10 @@ body {
   z-index: 10;
 }
 .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; }
-.brand a { text-decoration: none; color: inherit; display: contents; }
+.brand a { text-decoration: none; display: contents; }
 .brand-mark { color: var(--accent); font-size: 22px; }
-.nav { display: flex; gap: 4px; flex: 1; }
+.brand-name { color: var(--text); }
+.nav { display: flex; gap: 4px; flex: 1; align-items: center; }
 .nav-link {
   color: var(--muted);
   text-decoration: none;
@@ -109,7 +110,7 @@ body {
 .sidebar-textarea { resize: vertical; min-height: 60px; }
 
 /* Capped height with scroll so a long exercise list doesn't push the Save button off-screen */
-.sidebar-ex-list {
+.sidebar-exercise-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -119,9 +120,9 @@ body {
   max-height: 260px;
   overflow-y: auto;
 }
-.sidebar-ex-empty { font-size: 12px; color: var(--muted); font-style: italic; padding: 4px 0; }
+.sidebar-exercise-empty { font-size: 12px; color: var(--muted); font-style: italic; padding: 4px 0; }
 /* Two-row layout: name+remove on top, sets/reps inputs below */
-.sidebar-ex-item {
+.sidebar-exercise-item {
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -130,18 +131,18 @@ body {
   background-color: var(--bg);
   border-radius: 6px;
 }
-.sidebar-ex-top {
+.sidebar-exercise-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 /* Inline sets/reps row beneath the exercise name */
-.sidebar-ex-meta {
+.sidebar-exercise-meta {
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.sidebar-ex-meta-label {
+.sidebar-exercise-meta-label {
   font-size: 11px;
   color: var(--muted);
 }
@@ -161,7 +162,7 @@ body {
 .sidebar-sets-reps::-webkit-outer-spin-button,
 .sidebar-sets-reps::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .sidebar-sets-reps[type=number] { appearance: textfield; }
-.sidebar-ex-remove {
+.sidebar-exercise-remove {
   background: none;
   border: none;
   color: var(--muted);
@@ -170,7 +171,7 @@ body {
   padding: 0 4px;
   flex-shrink: 0; /* prevents the ✕ button from shrinking when the exercise name is long */
 }
-.sidebar-ex-remove:hover { color: var(--danger); }
+.sidebar-exercise-remove:hover { color: var(--danger); }
 
 .sidebar-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .btn-block { width: 100%; }
@@ -220,8 +221,8 @@ body {
 .workout-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
 .workout-card-name { margin: 0; font-size: 17px; }
 .workout-card-desc { margin: 0; font-size: 13px; color: var(--muted); }
-.workout-ex-list,
-.history-ex-list {
+.workout-exercise-list,
+.history-exercise-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -229,14 +230,14 @@ body {
   flex-direction: column;
   gap: 4px;
 }
-.workout-ex-list { flex: 1; }
+.workout-exercise-list { flex: 1; }
 /* Clickable exercise rows open the detail popup */
-.workout-ex-item { cursor: pointer; }
-.workout-ex-item:hover { border-color: var(--accent); }
+.workout-exercise-item { cursor: pointer; }
+.workout-exercise-item:hover { border-color: var(--accent); }
 
 /* Each exercise row: name on the left, volume (sets · reps) on the right */
-.workout-ex-list li,
-.history-ex-list li {
+.workout-exercise-list li,
+.history-exercise-list li {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -245,12 +246,12 @@ body {
   background-color: var(--bg);
   border-radius: 6px;
 }
-.workout-ex-list li {
+.workout-exercise-list li {
   border: 1px solid transparent;
   transition: border-color 0.15s;
 }
-.workout-ex-volume,
-.history-ex-volume {
+.workout-exercise-volume,
+.history-exercise-volume {
   font-size: 12px;
   color: var(--muted);
   flex-shrink: 0; /* keeps the volume label from wrapping when the name is long */
@@ -622,5 +623,91 @@ body {
   font-size: 12px;
   color: var(--danger);
   margin: 0 0 4px;
+}
+
+/* ── Auth pages ────────────────────────────────────────── */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow);
+}
+.auth-brand {
+  margin-bottom: 24px;
+}
+.auth-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 24px;
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.auth-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.auth-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.auth-input:focus { border-color: var(--accent); }
+.auth-btn {
+  margin-top: 8px;
+  width: 100%;
+  padding: 11px;
+  font-size: 15px;
+  border-radius: 20px;
+}
+.auth-error {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  color: var(--danger);
+  font-size: 13px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+.auth-switch {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 20px;
+}
+.auth-switch a { color: var(--accent); text-decoration: none; }
+
+
+/* Logout form and login link pushed to the right end of the nav */
+.nav-logout-form { display: flex; align-items: center; margin-left: auto; }
+.nav-auth-link { margin-left: auto; }
+
+/* Logout button in nav */
+.nav-logout {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 8px 14px;
 }
 .hidden { display: none; }

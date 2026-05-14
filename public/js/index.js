@@ -50,8 +50,9 @@ function setupFilterDropdown(triggerId, panelId, optionsId, selectedSet, badgeId
     }
   }
 
-  // start with every option selected when the page loads
+  // start with every option selected (also used as reset)
   function initSelectAll() {
+    selectedSet.clear();
     getOptions().forEach(o => {
       selectedSet.add(o.dataset.value);
       o.classList.add('active');
@@ -114,10 +115,12 @@ function setupFilterDropdown(triggerId, panelId, optionsId, selectedSet, badgeId
     selectAllBtn.classList.remove('active');
     updateBadge();
   });
+
+  return { reset: initSelectAll };
 }
 
-setupFilterDropdown('bodyPartTrigger',  'bodyPartPanel',  'bodyPartPills',  selectedBodyParts,  'bodyPartBadge',  'clearBodyParts',  'selectAllBodyParts');
-setupFilterDropdown('equipmentTrigger', 'equipmentPanel', 'equipmentPills', selectedEquipments, 'equipmentBadge', 'clearEquipments', 'selectAllEquipments');
+const { reset: resetBodyParts  } = setupFilterDropdown('bodyPartTrigger',  'bodyPartPanel',  'bodyPartPills',  selectedBodyParts,  'bodyPartBadge',  'clearBodyParts',  'selectAllBodyParts');
+const { reset: resetEquipments } = setupFilterDropdown('equipmentTrigger', 'equipmentPanel', 'equipmentPills', selectedEquipments, 'equipmentBadge', 'clearEquipments', 'selectAllEquipments');
 
 // Close dropdowns when clicking outside
 document.addEventListener('click', () => {
@@ -126,25 +129,14 @@ document.addEventListener('click', () => {
 });
 
 queryInput.addEventListener('input', () => {
-  clearSearchBtn.style.display = queryInput.value ? '' : 'none';
+  clearSearchBtn.classList.toggle('hidden', !queryInput.value);
 });
 
 clearSearchBtn.addEventListener('click', () => {
   queryInput.value = '';
-  selectedBodyParts.clear();
-  selectedEquipments.clear();
-  // reset both filters back to "all selected" — activate classes and repopulate sets in one pass
-  [['bodyPartPills', selectedBodyParts], ['equipmentPills', selectedEquipments]].forEach(([id, set]) => {
-    const container = document.getElementById(id);
-    container.querySelectorAll('.filter-option:not(.filter-option-all)').forEach(o => {
-      o.classList.add('active');
-      set.add(o.dataset.value);
-    });
-    container.querySelector('.filter-option-all')?.classList.add('active');
-  });
-  document.getElementById('bodyPartBadge').classList.add('hidden');
-  document.getElementById('equipmentBadge').classList.add('hidden');
-  clearSearchBtn.style.display = 'none';
+  resetBodyParts();
+  resetEquipments();
+  clearSearchBtn.classList.add('hidden');
   resultsGrid.innerHTML = '';
   resultsCount.textContent = 'Search to get started';
 });
@@ -157,8 +149,9 @@ const cancelCreateBtn = document.getElementById('cancelCreateBtn');
 const saveWorkoutBtn  = document.getElementById('saveWorkoutBtn');
 const workoutNameInput = document.getElementById('workoutName');
 const workoutDescInput = document.getElementById('workoutDesc');
-const sidebarExList    = document.getElementById('sidebarExList');
-const exCountLabel     = document.getElementById('exCount');
+const sidebarExerciseList = document.getElementById('sidebarExerciseList');
+const exerciseCountLabel  = document.getElementById('exerciseCount');
+const saveErrorEl         = document.getElementById('saveError');
 
 // ─── Workout creator state ─────────────────────────────────────────────────────
 let isCreating = false;
@@ -173,7 +166,7 @@ function enterCreatingMode() {
   sidebarIdle.classList.add('hidden');
   sidebarCreating.classList.remove('hidden');
   // show the Add button inside the popup
-  document.getElementById('popupAddSection').style.display = '';
+  document.getElementById('popupAddSection').classList.remove('hidden');
   // Re-render cards if there are results so Add buttons appear
   refreshCardAddButtons();
 }
@@ -183,36 +176,36 @@ function exitCreatingMode() {
   stagedExercises = [];
   sidebarCreating.classList.add('hidden');
   sidebarIdle.classList.remove('hidden');
-  document.getElementById('popupAddSection').style.display = 'none';
+  document.getElementById('popupAddSection').classList.add('hidden');
   refreshCardAddButtons();
 }
 
 // re-renders the exercise list in the sidebar
 function renderSidebarList() {
-  sidebarExList.innerHTML = '';
-  exCountLabel.textContent = `(${stagedExercises.length})`;
+  sidebarExerciseList.innerHTML = '';
+  exerciseCountLabel.textContent = `(${stagedExercises.length})`;
 
   if (stagedExercises.length === 0) {
     const empty = document.createElement('li');
-    empty.className = 'sidebar-ex-empty';
+    empty.className = 'sidebar-exercise-empty';
     empty.textContent = 'Search for exercises and click Add.';
-    sidebarExList.appendChild(empty);
+    sidebarExerciseList.appendChild(empty);
     return;
   }
 
-  stagedExercises.forEach((ex, i) => {
+  stagedExercises.forEach((exercise, i) => {
     const li = document.createElement('li');
-    li.className = 'sidebar-ex-item';
+    li.className = 'sidebar-exercise-item';
 
     const topRow = document.createElement('div');
-    topRow.className = 'sidebar-ex-top';
+    topRow.className = 'sidebar-exercise-top';
 
     const name = document.createElement('span');
-    name.textContent = toTitleCase(ex.name);
+    name.textContent = toTitleCase(exercise.name);
 
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
-    removeBtn.className = 'sidebar-ex-remove';
+    removeBtn.className = 'sidebar-exercise-remove';
     removeBtn.textContent = '✕';
     removeBtn.addEventListener('click', () => {
       stagedExercises.splice(i, 1);
@@ -225,17 +218,17 @@ function renderSidebarList() {
 
     // sets/reps inputs — write back to state on every keystroke so the values survive re-renders
     const metaRow = document.createElement('div');
-    metaRow.className = 'sidebar-ex-meta';
+    metaRow.className = 'sidebar-exercise-meta';
 
     const setsLabel = document.createElement('span');
-    setsLabel.className = 'sidebar-ex-meta-label';
+    setsLabel.className = 'sidebar-exercise-meta-label';
     setsLabel.textContent = 'Sets';
 
     const setsInput = document.createElement('input');
     setsInput.type = 'number';
     setsInput.min = '1';
     setsInput.max = '99';
-    setsInput.value = ex.sets;
+    setsInput.value = exercise.sets;
     setsInput.className = 'sidebar-sets-reps';
     setsInput.addEventListener('input', () => {
       stagedExercises[i].sets = Math.max(1, parseInt(setsInput.value) || 1);
@@ -244,14 +237,14 @@ function renderSidebarList() {
     setsInput.addEventListener('blur', () => { setsInput.value = stagedExercises[i].sets; });
 
     const repsLabel = document.createElement('span');
-    repsLabel.className = 'sidebar-ex-meta-label';
+    repsLabel.className = 'sidebar-exercise-meta-label';
     repsLabel.textContent = 'Reps';
 
     const repsInput = document.createElement('input');
     repsInput.type = 'number';
     repsInput.min = '1';
     repsInput.max = '999';
-    repsInput.value = ex.reps;
+    repsInput.value = exercise.reps;
     repsInput.className = 'sidebar-sets-reps';
     repsInput.addEventListener('input', () => {
       stagedExercises[i].reps = Math.max(1, parseInt(repsInput.value) || 1);
@@ -266,22 +259,22 @@ function renderSidebarList() {
 
     li.appendChild(topRow);
     li.appendChild(metaRow);
-    sidebarExList.appendChild(li);
+    sidebarExerciseList.appendChild(li);
   });
 }
 
 // Adds one exercise to the staged list (called from card or popup Add button)
-function addExerciseToWorkout(ex) {
-  if (!stagedExercises.some(e => e.exerciseId === ex.exerciseId)) {
+function addExerciseToWorkout(exercise) {
+  if (!stagedExercises.some(e => e.exerciseId === exercise.exerciseId)) {
     stagedExercises.push({
-      exerciseId:       ex.exerciseId,
-      name:             ex.name,
-      gifUrl:           ex.gifUrl,
-      targetMuscles:    ex.targetMuscles    || [],
-      bodyParts:        ex.bodyParts        || [],
-      equipments:       ex.equipments       || [],
-      secondaryMuscles: ex.secondaryMuscles || [],
-      instructions:     ex.instructions     || [],
+      exerciseId:       exercise.exerciseId,
+      name:             exercise.name,
+      gifUrl:           exercise.gifUrl,
+      targetMuscles:    exercise.targetMuscles    || [],
+      bodyParts:        exercise.bodyParts        || [],
+      equipments:       exercise.equipments       || [],
+      secondaryMuscles: exercise.secondaryMuscles || [],
+      instructions:     exercise.instructions     || [],
       sets:             3, // default volume, editable in the sidebar
       reps:             10
     });
@@ -301,94 +294,91 @@ function refreshCardAddButtons() {
   });
 }
 
-// If the server injected an #editData element, pre-load that workout into the sidebar
-const editDataEl    = document.getElementById('editData');
-const editWorkoutId = editDataEl ? editDataEl.dataset.id : null;
+// Sidebar setup — only runs when the user is logged in and the sidebar exists
+if (startCreateBtn) {
+  const editDataEl    = document.getElementById('editData');
+  const editWorkoutId = editDataEl ? editDataEl.dataset.id : null;
 
-if (editWorkoutId) {
-  const editWorkout = JSON.parse(editDataEl.dataset.workout);
-  enterCreatingMode();
-  document.querySelector('.sidebar-title').textContent = 'Edit Workout';
-  saveWorkoutBtn.textContent  = 'Save Changes';
-  cancelCreateBtn.textContent = '← Back';
-  workoutNameInput.value = editWorkout.name;
-  workoutDescInput.value = editWorkout.description || '';
-  (editWorkout.exercises || []).forEach(ex => {
-    stagedExercises.push({ ...ex, sets: ex.sets || 3, reps: ex.reps || 10 });
-  });
-  renderSidebarList();
-}
-
-startCreateBtn.addEventListener('click', enterCreatingMode);
-
-// go back to /workouts when editing, or close the sidebar when creating
-cancelCreateBtn.addEventListener('click', () => {
-  if (editWorkoutId) { window.location.href = '/workouts'; }
-  else               { exitCreatingMode(); }
-});
-
-// show or hide the inline validation error below the exercise list
-function showSaveError(msg) {
-  const el = document.getElementById('saveError');
-  el.textContent = msg;
-  el.classList.remove('hidden');
-}
-function clearSaveError() {
-  document.getElementById('saveError').classList.add('hidden');
-}
-// clear the error while the user is typing in the name field
-workoutNameInput.addEventListener('input', clearSaveError);
-
-saveWorkoutBtn.addEventListener('click', async () => {
-  const name = workoutNameInput.value.trim();
-  if (!name) { showSaveError('Please enter a workout name.'); return; }
-  if (stagedExercises.length === 0) { showSaveError('Please add at least one exercise.'); return; }
-  clearSaveError();
-
-  saveWorkoutBtn.disabled = true;
-  saveWorkoutBtn.textContent = 'Saving…';
-
-  // editing an existing workout uses PUT; creating a new one uses POST
-  const url    = editWorkoutId ? '/workouts/' + editWorkoutId : '/workouts';
-  const method = editWorkoutId ? 'PUT' : 'POST';
-
-  try {
-    const res  = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, description: workoutDescInput.value.trim(), exercises: stagedExercises })
+  if (editWorkoutId) {
+    const editWorkout = JSON.parse(editDataEl.dataset.workout);
+    enterCreatingMode();
+    document.querySelector('.sidebar-title').textContent = 'Edit Workout';
+    saveWorkoutBtn.textContent  = 'Save Changes';
+    cancelCreateBtn.textContent = '← Back';
+    workoutNameInput.value = editWorkout.name;
+    workoutDescInput.value = editWorkout.description || '';
+    (editWorkout.exercises || []).forEach(exercise => {
+      stagedExercises.push({ ...exercise, sets: exercise.sets || 3, reps: exercise.reps || 10 });
     });
-    const data = await res.json();
-    if (data.success) {
-      if (editWorkoutId) {
-        window.location.href = '/workouts';
-      } else {
-        exitCreatingMode();
-        startCreateBtn.textContent = '✓ Workout saved!';
-        setTimeout(() => { startCreateBtn.textContent = '+ Create Workout'; }, 2500);
-      }
-    } else {
-      showSaveError(data.error || 'Save failed. Please try again.');
-    }
-  } catch (err) {
-    console.error(err);
-    showSaveError('Network error. Please try again.');
-  } finally {
-    saveWorkoutBtn.disabled = false;
-    saveWorkoutBtn.textContent = editWorkoutId ? 'Save Changes' : 'Save Workout';
+    renderSidebarList();
   }
-});
+
+  startCreateBtn.addEventListener('click', enterCreatingMode);
+
+  cancelCreateBtn.addEventListener('click', () => {
+    if (editWorkoutId) { window.location.href = '/workouts'; }
+    else               { exitCreatingMode(); }
+  });
+
+  function showSaveError(msg) {
+    saveErrorEl.textContent = msg;
+    saveErrorEl.classList.remove('hidden');
+  }
+  function clearSaveError() {
+    saveErrorEl.classList.add('hidden');
+  }
+  workoutNameInput.addEventListener('input', clearSaveError);
+
+  saveWorkoutBtn.addEventListener('click', async () => {
+    const name = workoutNameInput.value.trim();
+    if (!name) { showSaveError('Please enter a workout name.'); return; }
+    if (stagedExercises.length === 0) { showSaveError('Please add at least one exercise.'); return; }
+    clearSaveError();
+
+    saveWorkoutBtn.disabled = true;
+    saveWorkoutBtn.textContent = 'Saving…';
+
+    const url    = editWorkoutId ? '/workouts/' + editWorkoutId : '/workouts';
+    const method = editWorkoutId ? 'PUT' : 'POST';
+
+    try {
+      const res  = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description: workoutDescInput.value.trim(), exercises: stagedExercises })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (editWorkoutId) {
+          window.location.href = '/workouts';
+        } else {
+          exitCreatingMode();
+          startCreateBtn.textContent = '✓ Workout saved!';
+          setTimeout(() => { startCreateBtn.textContent = '+ Create Workout'; }, 2500);
+        }
+      } else {
+        showSaveError(data.error || 'Save failed. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      showSaveError('Network error. Please try again.');
+    } finally {
+      saveWorkoutBtn.disabled = false;
+      saveWorkoutBtn.textContent = editWorkoutId ? 'Save Changes' : 'Save Workout';
+    }
+  });
+}
 
 // ─── Popup ────────────────────────────────────────────────────────────────────
-let openExercise = null;
+let openExercise;
 
-function openPopup(ex) {
-  openExercise = ex;
+function openPopup(exercise) {
+  openExercise = exercise;
 
   const popupImg = document.getElementById('popupImg');
   popupImg.style.display = 'block';
-  popupImg.src = ex.gifUrl;
-  popupImg.alt = ex.name;
+  popupImg.src = exercise.gifUrl;
+  popupImg.alt = exercise.name;
   popupImg.onerror = () => {
     popupImg.style.display = 'none';
     let fallback = document.getElementById('popupImgFallback');
@@ -404,22 +394,22 @@ function openPopup(ex) {
   const fallback = document.getElementById('popupImgFallback');
   if (fallback) fallback.style.display = 'none';
 
-  document.getElementById('popupName').textContent = toTitleCase(ex.name);
+  document.getElementById('popupName').textContent = toTitleCase(exercise.name);
 
   const tagsEl = document.getElementById('popupTags');
-  buildTags(tagsEl, [...(ex.bodyParts || []), ...(ex.equipments || [])]);
+  buildTags(tagsEl, [...(exercise.bodyParts || []), ...(exercise.equipments || [])]);
 
   const targetSection = document.getElementById('popupTargetSection');
-  if (ex.targetMuscles && ex.targetMuscles.length > 0) {
-    document.getElementById('popupTarget').textContent = ex.targetMuscles.join(', ');
+  if (exercise.targetMuscles && exercise.targetMuscles.length > 0) {
+    document.getElementById('popupTarget').textContent = exercise.targetMuscles.join(', ');
     targetSection.style.display = '';
   } else {
     targetSection.style.display = 'none';
   }
 
   const secondarySection = document.getElementById('popupSecondarySection');
-  if (ex.secondaryMuscles && ex.secondaryMuscles.length > 0) {
-    document.getElementById('popupSecondary').textContent = ex.secondaryMuscles.join(', ');
+  if (exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0) {
+    document.getElementById('popupSecondary').textContent = exercise.secondaryMuscles.join(', ');
     secondarySection.style.display = '';
   } else {
     secondarySection.style.display = 'none';
@@ -427,7 +417,7 @@ function openPopup(ex) {
 
   const instrEl = document.getElementById('popupInstructions');
   instrEl.innerHTML = '';
-  (ex.instructions || []).forEach(step => {
+  (exercise.instructions || []).forEach(step => {
     const li = document.createElement('li');
     // some instructions come prefixed with "Step: 1", "Step: 2", etc. — strip that
     li.textContent = step.replace(/^Step:\s*\d+\s*/i, '');
@@ -438,12 +428,12 @@ function openPopup(ex) {
   const addSection = document.getElementById('popupAddSection');
   const addBtn = document.getElementById('popupAddBtn');
   if (isCreating) {
-    addSection.style.display = '';
-    const already = stagedExercises.some(e => e.exerciseId === ex.exerciseId);
+    addSection.classList.remove('hidden');
+    const already = stagedExercises.some(e => e.exerciseId === exercise.exerciseId);
     addBtn.textContent = already ? '✓ Already added' : '+ Add to Workout';
     addBtn.disabled = already;
   } else {
-    addSection.style.display = 'none';
+    addSection.classList.add('hidden');
   }
 
   document.getElementById('popupOverlay').classList.remove('hidden');
@@ -453,7 +443,6 @@ function openPopup(ex) {
 function closePopup() {
   document.getElementById('popupOverlay').classList.add('hidden');
   document.body.style.overflow = '';
-  openExercise = null;
 }
 
 document.getElementById('popupClose').addEventListener('click', closePopup);
@@ -483,8 +472,8 @@ const bodyPartColor = {
   'neck':        '#795548',
 };
 
-function renderCard(ex) {
-  const primaryPart = (ex.bodyParts || [])[0] || '';
+function renderCard(exercise) {
+  const primaryPart = (exercise.bodyParts || [])[0] || '';
   const color = bodyPartColor[primaryPart] || '#8aff5e';
 
   const card = document.createElement('div');
@@ -511,23 +500,23 @@ function renderCard(ex) {
   cardBody.className = 'card-body';
 
   const h3 = document.createElement('h3');
-  h3.textContent = toTitleCase(ex.name);
+  h3.textContent = toTitleCase(exercise.name);
 
   const tags = document.createElement('div');
   tags.className = 'tags';
-  buildTags(tags, [...(ex.bodyParts || []), ...(ex.equipments || [])]);
+  buildTags(tags, [...(exercise.bodyParts || []), ...(exercise.equipments || [])]);
 
   // "Add to workout" button — only shown while creating a workout
   const addBtn = document.createElement('button');
   addBtn.className = 'btn btn-sm card-add-btn';
-  addBtn.dataset.exerciseId = ex.exerciseId;
+  addBtn.dataset.exerciseId = exercise.exerciseId;
   addBtn.style.display = isCreating ? '' : 'none';
-  const already = stagedExercises.some(e => e.exerciseId === ex.exerciseId);
+  const already = stagedExercises.some(e => e.exerciseId === exercise.exerciseId);
   addBtn.textContent = already ? '✓ Added' : '+ Add';
   addBtn.disabled = already;
   addBtn.addEventListener('click', e => {
     e.stopPropagation(); // don't open the popup when clicking Add
-    addExerciseToWorkout(ex);
+    addExerciseToWorkout(exercise);
   });
 
   cardBody.appendChild(h3);
@@ -537,7 +526,7 @@ function renderCard(ex) {
   card.appendChild(cardBody);
 
   // clicking the card (not the Add button) opens the detail popup
-  card.addEventListener('click', () => openPopup(ex));
+  card.addEventListener('click', () => openPopup(exercise));
 
   return card;
 }
@@ -588,10 +577,10 @@ form.addEventListener('submit', async e => {
     const exercises = [];
     for (const batch of results) {
       if (Array.isArray(batch)) {
-        for (const ex of batch) {
-          if (!seen.has(ex.exerciseId)) {
-            seen.add(ex.exerciseId);
-            exercises.push(ex);
+        for (const exercise of batch) {
+          if (!seen.has(exercise.exerciseId)) {
+            seen.add(exercise.exerciseId);
+            exercises.push(exercise);
           }
         }
       }
@@ -603,7 +592,7 @@ form.addEventListener('submit', async e => {
     }
 
     resultsCount.textContent = `${exercises.length} result${exercises.length !== 1 ? 's' : ''}`;
-    exercises.forEach(ex => resultsGrid.appendChild(renderCard(ex)));
+    exercises.forEach(exercise => resultsGrid.appendChild(renderCard(exercise)));
   } catch (err) {
     resultsCount.textContent = 'Error — please try again.';
     console.error(err);

@@ -17,6 +17,7 @@ const ExerciseSchema = new mongoose.Schema({
 
 // A saved workout with a name, optional description, and a list of exercises
 const WorkoutSchema = new mongoose.Schema({
+  userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   name:        { type: String, required: true },
   description: { type: String, default: '' },
   exercises:   { type: [ExerciseSchema], default: [] }

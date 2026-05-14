@@ -1,7 +1,7 @@
   <div class="popup-overlay hidden" id="<%= prefix %>Overlay">
     <div class="popup">
       <button class="popup-close" id="<%= prefix %>Close">✕</button>
-      <div class="popup-content">
+      <div>
         <div class="popup-info">
           <h2 id="<%= prefix %>Name"></h2>
           <div class="tags" id="<%= prefix %>Tags"></div>
@@ -22,7 +22,7 @@
           </div>
 
           <% if (showAdd) { %>
-          <div class="popup-section" id="<%= prefix %>AddSection" style="display:none">
+          <div class="popup-section hidden" id="<%= prefix %>AddSection">
             <button class="btn btn-primary" id="<%= prefix %>AddBtn">+ Add to Workout</button>
           </div>
           <% } %>
