@@ -1,7 +1,5 @@
 const express = require('express');
-
 const router = express.Router();
-
 const EDB_BASE = 'https://oss.exercisedb.dev/api/v1';
 
 // GET /api/exercises — proxies to ExerciseDB
@@ -19,7 +17,6 @@ router.get('/exercises', async (req, res) => {
 
     // API returns { success, data } — forward only the data array
     if (!json.success) return res.status(502).json({ error: 'Upstream API error' });
-
     res.json(json.data);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -63,7 +63,6 @@
   <!-- Exercise detail popup -->
   <%- include('partials/popup', { prefix: 'exercisePopup', showAdd: false }) %>
 
-
   <!-- Workout data for the JS — exercises are read via dataset in workouts.js -->
   <div id="workoutsData" data-workouts="<%= JSON.stringify(workouts) %>" hidden></div>
   <script src="/js/workouts.js"></script>
