@@ -6,9 +6,9 @@
 
 **App Description:** FitLog lets users search thousands of exercises by name, muscle group, or equipment, build a workout by adding exercises, then log and review their workout history — all backed by MongoDB.
 
-**YouTube Video Link:** https://www.youtube.com/watch?v=REPLACE_WITH_VIDEO_ID
+**YouTube Video Link:** https://www.youtube.com/watch?v=Hn6FPLhT1tg
 
-**APIs:** [ExerciseDB Open Source](https://oss.exercisedb.dev) — provides exercise data including GIF demonstrations, body-part targets, and equipment info.
+**APIs:** [ExerciseDB Open Source](https://oss.exercisedb.dev) — Provides exercise data including GIF demonstrations, body-part targets, and equipment info.
 
 **Contact Email:** yibrahi2@terpmail.umd.edu
 
