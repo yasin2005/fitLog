@@ -12,6 +12,6 @@
 
 **Contact Email:** yibrahi2@terpmail.umd.edu
 
-**Deployed App Link:** https://REPLACE_WITH_APP_NAME.onrender.com
+**Deployed App Link:** https://fitlog-6lb3.onrender.com/
 
 **AI Use:** Claude Code
